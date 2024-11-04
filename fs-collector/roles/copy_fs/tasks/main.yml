@@ -3,7 +3,7 @@
   ansible.builtin.synchronize:
     mode: pull
     src: /
-    dest: /home/toni/dev/ubuntu-fs # Change this to your desired destination
+    dest: "{{ playbook_dir }}/source-fs"
     recursive: yes
     rsync_opts:
       - --exclude=/proc/*
