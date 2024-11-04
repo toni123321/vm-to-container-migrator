@@ -1,0 +1,6 @@
+---
+- name: Copy Ubuntu File System
+  hosts: ubuntu_servers
+  become: yes # Use sudo to run commands as root
+  roles:
+    - copy_fs

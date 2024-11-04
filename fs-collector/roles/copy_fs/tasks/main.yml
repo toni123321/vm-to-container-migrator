@@ -1,0 +1,22 @@
+---
+- name: Synchronize the Ubuntu file system
+  ansible.builtin.synchronize:
+    mode: pull
+    src: /
+    dest: /home/toni/dev/ubuntu-fs # Change this to your desired destination
+    recursive: yes
+    rsync_opts:
+      - --exclude=/proc/*
+      - --exclude=/boot/*
+      - --exclude=/sys/*
+      - --exclude=/dev/*
+      - --exclude=/lib/modules/*
+      - --exclude=/usr/share/man/*
+      - --exclude=/usr/share/doc/*
+      - --exclude=/var/cache/*
+      - --exclude=/var/backups/*
+      - --exclude=/var/log/*
+      - --exclude=/var/tmp/*
+      - --exclude=/var/run/*
+      - --exclude=/var/lib/lxcfs/*
+      - --exclude=/run/*

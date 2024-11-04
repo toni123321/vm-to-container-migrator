@@ -1,0 +1,2 @@
+[ubuntu_servers]
+128.140.102.178 ansible_ssh_user="<ansible-user>"
