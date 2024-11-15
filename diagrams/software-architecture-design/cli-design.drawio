@@ -1,41 +1,94 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36" version="24.8.4">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" version="24.8.4">
   <diagram name="general" id="V9hHeblfETCl9dgACQwb">
-    <mxGraphModel dx="1062" dy="582" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2420" dy="873" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="fJoIZStwYssJqCRf20SM-1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+        <mxCell id="zZdBqPPr3vYQGnGZT4Qj-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="fJoIZStwYssJqCRf20SM-1" target="zZdBqPPr3vYQGnGZT4Qj-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zZdBqPPr3vYQGnGZT4Qj-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="fJoIZStwYssJqCRf20SM-1" target="fJoIZStwYssJqCRf20SM-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zZdBqPPr3vYQGnGZT4Qj-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="fJoIZStwYssJqCRf20SM-1" target="fJoIZStwYssJqCRf20SM-8">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="400" y="780" />
+              <mxPoint x="275" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="zZdBqPPr3vYQGnGZT4Qj-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="fJoIZStwYssJqCRf20SM-1" target="zZdBqPPr3vYQGnGZT4Qj-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zZdBqPPr3vYQGnGZT4Qj-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="fJoIZStwYssJqCRf20SM-1" target="zZdBqPPr3vYQGnGZT4Qj-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fJoIZStwYssJqCRf20SM-1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
           <mxGeometry x="250" y="250" width="300" height="110" as="geometry" />
         </mxCell>
-        <mxCell id="fJoIZStwYssJqCRf20SM-2" value="" style="html=1;verticalLabelPosition=bottom;align=center;labelBackgroundColor=#ffffff;verticalAlign=top;strokeWidth=2;strokeColor=#0080F0;shadow=0;dashed=0;shape=mxgraph.ios7.icons.user;" vertex="1" parent="1">
+        <mxCell id="fJoIZStwYssJqCRf20SM-2" value="" style="html=1;verticalLabelPosition=bottom;align=center;labelBackgroundColor=#ffffff;verticalAlign=top;strokeWidth=2;strokeColor=#0080F0;shadow=0;dashed=0;shape=mxgraph.ios7.icons.user;" parent="1" vertex="1">
           <mxGeometry x="384" y="150" width="30" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="fJoIZStwYssJqCRf20SM-3" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.533;exitY=0.933;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="fJoIZStwYssJqCRf20SM-2" target="fJoIZStwYssJqCRf20SM-1">
+        <mxCell id="fJoIZStwYssJqCRf20SM-3" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.533;exitY=0.933;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="fJoIZStwYssJqCRf20SM-2" target="fJoIZStwYssJqCRf20SM-1" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="390" y="430" as="sourcePoint" />
             <mxPoint x="440" y="380" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="fJoIZStwYssJqCRf20SM-4" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;&lt;b&gt;vm2cont&lt;/b&gt;&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;&lt;b&gt;(CLI)&lt;/b&gt;&lt;/font&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="fJoIZStwYssJqCRf20SM-4" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;&lt;b&gt;vm2cont&lt;/b&gt;&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;&lt;b&gt;(CLI)&lt;/b&gt;&lt;/font&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="369" y="270" width="60" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="fJoIZStwYssJqCRf20SM-6" value="Works as a module" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="zZdBqPPr3vYQGnGZT4Qj-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" target="fJoIZStwYssJqCRf20SM-11">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="399" y="360" as="sourcePoint" />
+            <Array as="points">
+              <mxPoint x="399" y="780" />
+              <mxPoint x="525" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fJoIZStwYssJqCRf20SM-6" value="Works as a module" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="338.5" y="320" width="121" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="fJoIZStwYssJqCRf20SM-8" value="Version&lt;div&gt;-v&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="60" y="440" width="170" height="80" as="geometry" />
+        <mxCell id="fJoIZStwYssJqCRf20SM-8" value="Version&lt;div&gt;-v&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="190" y="835" width="170" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="fJoIZStwYssJqCRf20SM-11" value="Help&lt;div&gt;--help&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="250" y="440" width="170" height="80" as="geometry" />
+        <mxCell id="fJoIZStwYssJqCRf20SM-11" value="Help&lt;div&gt;--help&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="440" y="835" width="170" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="fJoIZStwYssJqCRf20SM-12" value="&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;1. For each command provides&amp;nbsp;&lt;/span&gt;&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;link to web docs&lt;/span&gt;&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;2. Provide brief help within the terminal&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;/div&gt;" style="shape=note;strokeWidth=2;fontSize=14;size=20;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#666600;align=left;" vertex="1" parent="1">
-          <mxGeometry x="250" y="540" width="170" height="90" as="geometry" />
+        <mxCell id="fJoIZStwYssJqCRf20SM-12" value="&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;1. For each command provides&amp;nbsp;&lt;/span&gt;&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;link to web docs&lt;/span&gt;&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;2. Provide brief help within the terminal&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;/div&gt;" style="shape=note;strokeWidth=2;fontSize=14;size=20;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#666600;align=left;" parent="1" vertex="1">
+          <mxGeometry x="440" y="935" width="170" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="fJoIZStwYssJqCRf20SM-13" value="&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;1. Quickly displays CLI version&lt;/span&gt;&lt;/font&gt;" style="shape=note;strokeWidth=2;fontSize=14;size=20;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#666600;align=left;" vertex="1" parent="1">
-          <mxGeometry x="60" y="540" width="170" height="90" as="geometry" />
+        <mxCell id="fJoIZStwYssJqCRf20SM-13" value="&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;1. Quickly displays CLI version&lt;/span&gt;&lt;/font&gt;" style="shape=note;strokeWidth=2;fontSize=14;size=20;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#666600;align=left;" parent="1" vertex="1">
+          <mxGeometry x="190" y="935" width="170" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="fJoIZStwYssJqCRf20SM-14" value="Analyze" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="fJoIZStwYssJqCRf20SM-14" value="Analyze process" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="440" y="440" width="170" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zZdBqPPr3vYQGnGZT4Qj-1" value="&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;1. Collect application and configuration files based on the running processes&lt;/span&gt;&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;2. Collect expose ports&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;3. Provide a folder with minimized file system&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;" style="shape=note;strokeWidth=2;fontSize=14;size=20;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#666600;align=left;" vertex="1" parent="1">
+          <mxGeometry x="440" y="540" width="170" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="zZdBqPPr3vYQGnGZT4Qj-2" value="Dockerize process" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="630" y="440" width="170" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zZdBqPPr3vYQGnGZT4Qj-3" value="&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;1. Receives a folder with the minimized version of the file system&lt;/span&gt;&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;2.&amp;nbsp;&lt;/span&gt;&lt;/font&gt;&lt;span style=&quot;font-size: 10px; color: rgb(0, 0, 0); background-color: initial;&quot;&gt;Copy files to the container&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 10px; color: rgb(0, 0, 0); background-color: initial;&quot;&gt;3. Enable system services and start them&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 10px; color: rgb(0, 0, 0); background-color: initial;&quot;&gt;4. Expose ports&lt;/span&gt;&lt;span style=&quot;background-color: initial; color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;" style="shape=note;strokeWidth=2;fontSize=14;size=20;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#666600;align=left;" vertex="1" parent="1">
+          <mxGeometry x="640" y="540" width="170" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="zZdBqPPr3vYQGnGZT4Qj-11" value="Analyze fs" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="440" width="170" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zZdBqPPr3vYQGnGZT4Qj-12" value="&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;1. Collect the file system and apply default filters&lt;/span&gt;&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;2. Collect system services&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;3. Collect exposed ports&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;4. Provide a config.yaml containing the filters, the exposed ports, and system services&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;5. Provide a folder with the minimized file system&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;" style="shape=note;strokeWidth=2;fontSize=14;size=20;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#666600;align=left;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="540" width="170" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="zZdBqPPr3vYQGnGZT4Qj-13" value="Dockerize fs" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="170" y="440" width="170" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zZdBqPPr3vYQGnGZT4Qj-14" value="&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;1. Receives a folder with the minimized version of the file system&lt;/span&gt;&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;2.&amp;nbsp;&lt;/span&gt;&lt;/font&gt;&lt;span style=&quot;font-size: 10px; color: rgb(0, 0, 0); background-color: initial;&quot;&gt;Copy files to the container&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 10px; color: rgb(0, 0, 0); background-color: initial;&quot;&gt;3. Enable system services and start them&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 10px; color: rgb(0, 0, 0); background-color: initial;&quot;&gt;4. Expose ports&lt;/span&gt;&lt;span style=&quot;background-color: initial; color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;" style="shape=note;strokeWidth=2;fontSize=14;size=20;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#666600;align=left;" vertex="1" parent="1">
+          <mxGeometry x="180" y="540" width="170" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="zZdBqPPr3vYQGnGZT4Qj-18" value="Might be much more efficient than fs" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="540" y="390" width="163" height="30" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
