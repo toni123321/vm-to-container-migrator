@@ -85,7 +85,7 @@
           <mxGeometry x="170" y="440" width="170" height="80" as="geometry" />
         </mxCell>
         <mxCell id="zZdBqPPr3vYQGnGZT4Qj-14" value="&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;1. Receives a folder with the minimized version of the file system&lt;/span&gt;&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;font-size: 10px;&quot;&gt;2.&amp;nbsp;&lt;/span&gt;&lt;/font&gt;&lt;span style=&quot;font-size: 10px; color: rgb(0, 0, 0); background-color: initial;&quot;&gt;Copy files to the container&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 10px; color: rgb(0, 0, 0); background-color: initial;&quot;&gt;3. Enable system services and start them&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 10px; color: rgb(0, 0, 0); background-color: initial;&quot;&gt;4. Expose ports&lt;/span&gt;&lt;span style=&quot;background-color: initial; color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;" style="shape=note;strokeWidth=2;fontSize=14;size=20;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#666600;align=left;" vertex="1" parent="1">
-          <mxGeometry x="180" y="540" width="170" height="150" as="geometry" />
+          <mxGeometry x="170" y="540" width="170" height="150" as="geometry" />
         </mxCell>
         <mxCell id="zZdBqPPr3vYQGnGZT4Qj-18" value="Might be much more efficient than fs" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
           <mxGeometry x="540" y="390" width="163" height="30" as="geometry" />
