@@ -13,6 +13,15 @@ import (
 
 const BASE_OUTPUT_DIR = "./migration-output/"
 
+type Port struct {
+	Protocol string `yaml:"protocol"`
+	PortNr   string `yaml:"portNr"`
+}
+
+type PortsData struct {
+	Ports []Port `yaml:"ports"`
+}
+
 type Service struct {
 	Name     string `yaml:"name"`
 	SubState string `yaml:"substate"`
@@ -117,8 +126,7 @@ func save_sys_services(services []Service, path string) {
 
 }
 
-func collect_sys_services(user string, host string, port string, privateKeyPath string) {
-
+func connect_ssh(user string, host string, port string, privateKeyPath string) *ssh.Client {
 	// Create SSH client configuration
 	key, err := os.ReadFile(privateKeyPath)
 	if err != nil {
@@ -144,9 +152,21 @@ func collect_sys_services(user string, host string, port string, privateKeyPath 
 	if err != nil {
 		log.Fatalf("Failed to dial: %v", err)
 	}
-	defer client.Close()
 
-	fmt.Println("Gatheirng system services...")
+	return client
+}
+
+func collect_sys_services(user string, host string, port string, privateKeyPath string) {
+	// Connect to the VM through SSH
+	client := connect_ssh(user, host, port, privateKeyPath)
+
+	if client == nil {
+		log.Fatalf("Failed to connect to the VM")
+	} else {
+		fmt.Println("Connected to the VM successfully!")
+	}
+
+	fmt.Println("Gatheirng ports...")
 
 	// Run systemctl command to get active services
 	cmd := "systemctl --type=service --state=active --no-pager --no-legend"
@@ -171,6 +191,81 @@ func collect_sys_services(user string, host string, port string, privateKeyPath 
 	fmt.Println("System services collected successfully!")
 }
 
+func parse_exposed_ports(output []string) []Port {
+	var ports []Port
+	for _, port := range output {
+		if port != "" {
+			fields := strings.Fields(port)
+			if len(fields) == 2 {
+				protocol := fields[0]
+				portNr := fields[1]
+				ports = append(ports, Port{Protocol: protocol, PortNr: portNr})
+			}
+		}
+	}
+	return ports
+}
+
+func save_exposed_ports(ports []Port, path string) {
+	portsData := PortsData{Ports: ports}
+	yamFile, err := yaml.Marshal(portsData)
+	if err != nil {
+		log.Fatalf("Failed to move exposed ports to YAML format: %v", err)
+	}
+
+	// concatenate the base output directory with the path
+	path = BASE_OUTPUT_DIR + path
+	file, err := os.Create(path)
+	if err != nil {
+		log.Fatalf("Failed to create file: %v", err)
+	}
+	defer file.Close()
+
+	_, err = file.Write(yamFile)
+	if err != nil {
+		log.Fatalf("Failed to write to file: %v", err)
+	}
+
+}
+
+func collect_exposed_ports(user string, host string, port string, privateKeyPath string) {
+	// Connect to the VM through SSH
+	client := connect_ssh(user, host, port, privateKeyPath)
+
+	if client == nil {
+		log.Fatalf("Failed to connect to the VM")
+	} else {
+		fmt.Println("Connected to the VM successfully!")
+	}
+
+	cmd := "sudo ss -tuln | grep LISTEN | grep -vE '(:22 )' | awk '!existing_values[$4]++' | awk -F ' ' '{print $1,$5}' | awk -F'[ :]' '{print $1, $3}'"
+
+	session, err := client.NewSession()
+	if err != nil {
+		log.Fatalf("Failed to create session: %v", err)
+	}
+	defer session.Close()
+
+	// Run the command
+	output, err := session.CombinedOutput(cmd)
+	if err != nil {
+		log.Fatalf("Failed to execute command: %v", err)
+	}
+
+	print(string(output))
+
+	// Parse the output by sending it as list of ports strings
+	ports := parse_exposed_ports(strings.Split(string(output), "\n"))
+
+	fmt.Print(strings.Split(string(output), "\n"))
+	fmt.Print(ports[0])
+
+	// Save the ports to a YAML file
+	save_exposed_ports(ports, "exposed-ports.yaml")
+
+	fmt.Println("Exposed ports collected successfully!")
+}
+
 func main() {
 	fmt.Println("Analyze module!")
 
@@ -178,16 +273,24 @@ func main() {
 	create_base_output_dir()
 
 	// Step 1: Collect file system from source VM using default filters
-	collect_fs(
-		"antoniomihailov2001",
-		"34.173.30.91",
-		"/",
-		"source-vm-fs",
-		"/home/toni/.ssh/id_ed25519_gcloud_source_vm",
-	)
+	// collect_fs(
+	// 	"antoniomihailov2001",
+	// 	"34.173.30.91",
+	// 	"/",
+	// 	"source-vm-fs",
+	// 	"/home/toni/.ssh/id_ed25519_gcloud_source_vm",
+	// )
 
 	// Step 2: Collect active and running system services from source VM
-	collect_sys_services(
+	// collect_sys_services(
+	// 	"antoniomihailov2001",
+	// 	"34.173.30.91",
+	// 	"22",
+	// 	"/home/toni/.ssh/id_ed25519_gcloud_source_vm",
+	// )
+
+	// Step 3: Collect exposed ports from source VM
+	collect_exposed_ports(
 		"antoniomihailov2001",
 		"34.173.30.91",
 		"22",
