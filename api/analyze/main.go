@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"golang.org/x/crypto/ssh"
@@ -55,7 +56,6 @@ func collect_fs(user string, host string, sourceDir string, destinationDir strin
 		"--exclude=/usr/share/doc/*",
 		"--exclude=/var/cache/*",
 		"--exclude=/var/backups/*",
-		"--exclude=/var/log/*",
 		"--exclude=/var/tmp/*",
 		"--exclude=/var/run/*",
 		"--exclude=/var/lib/lxcfs/*",
@@ -90,14 +90,47 @@ func collect_fs(user string, host string, sourceDir string, destinationDir strin
 }
 
 func parse_sys_services(output []string) []Service {
+	// Define the exclude service regex list
+	excludeSvcRegexList := []string{
+		`^ufw\.service$`,
+		`user-runtime-dir@1002.service`,
+		`user@1002.service`,
+	}
+
+	// Compile the exclude service regexes and store them in a set
+	excludeSvcRegexSet := make(map[*regexp.Regexp]struct{}, len(excludeSvcRegexList))
+	for _, svcRegex := range excludeSvcRegexList {
+		regexObj, err := regexp.Compile(svcRegex)
+		if err != nil {
+			log.Fatalf("Failed to compile regex: %v", err)
+		}
+		excludeSvcRegexSet[regexObj] = struct{}{}
+	}
+
 	var services []Service
 	for _, service := range output {
+		// Check for empty line
 		if service != "" {
+			// Split the service line into fields separated by whitespace delimeter
 			fields := strings.Fields(service)
 			if len(fields) >= 4 {
 				name := fields[0]
 				subState := fields[3]
-				services = append(services, Service{Name: name, SubState: subState})
+
+				// Check if the service name matches any of the exclude regexes
+				excluded := false
+
+				for regexObj := range excludeSvcRegexSet {
+					if regexObj.MatchString(name) {
+						excluded = true
+						break
+					}
+				}
+
+				// If the service is not excluded, add it to the list of services
+				if !excluded {
+					services = append(services, Service{Name: name, SubState: subState})
+				}
 			}
 		}
 	}
@@ -266,6 +299,10 @@ func collect_exposed_ports(user string, host string, port string, privateKeyPath
 	fmt.Println("Exposed ports collected successfully!")
 }
 
+func convert_to_dockerfile(fsPath string, servicesPath string, portsPath string, dockerfilePath string) {
+
+}
+
 func main() {
 	fmt.Println("Analyze module!")
 
@@ -290,10 +327,28 @@ func main() {
 	// )
 
 	// Step 3: Collect exposed ports from source VM
-	collect_exposed_ports(
-		"antoniomihailov2001",
-		"34.173.30.91",
-		"22",
-		"/home/toni/.ssh/id_ed25519_gcloud_source_vm",
-	)
+	// collect_exposed_ports(
+	// 	"antoniomihailov2001",
+	// 	"34.173.30.91",
+	// 	"22",
+	// 	"/home/toni/.ssh/id_ed25519_gcloud_source_vm",
+	// )
+
+	// Step 4: Convert the collected data to a Dockerfile
+	// convert_to_dockerfile(
+	// 	"source-vm-fs",
+	// 	"sys-services.yaml",
+	// 	"exposed-ports.yaml",
+	// 	"Dockerfile",
+	// )
+
+	output := []string{
+		"cron.service loaded active running Regular background program processing daemon",
+		"dbus.service loaded active running D-Bus System Message Bus",
+		"ufw.service loaded active running Uncomplicated Firewall",
+		"user@1002.service loaded active running User Manager for UID 1002",
+	}
+
+	services := parse_sys_services(output)
+	fmt.Println(services)
 }
