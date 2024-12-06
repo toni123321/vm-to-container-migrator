@@ -26,6 +26,7 @@ type PortsData struct {
 type Service struct {
 	Name     string `yaml:"name"`
 	SubState string `yaml:"substate"`
+	Command  string `yaml:"command"`
 }
 
 // ServicesData is the top-level structure to store services
@@ -38,6 +39,36 @@ func create_base_output_dir() {
 	if _, err := os.Stat(BASE_OUTPUT_DIR); os.IsNotExist(err) {
 		os.Mkdir(BASE_OUTPUT_DIR, 0755)
 	}
+}
+
+func connect_ssh(user string, host string, port string, privateKeyPath string) *ssh.Client {
+	// Create SSH client configuration
+	key, err := os.ReadFile(privateKeyPath)
+	if err != nil {
+		log.Fatalf("Unable to read private key: %v", err)
+	}
+
+	signer, err := ssh.ParsePrivateKey(key)
+	if err != nil {
+		log.Fatalf("Unable to parse private key: %v", err)
+	}
+
+	sshConfig := &ssh.ClientConfig{
+		User: user,
+		Auth: []ssh.AuthMethod{
+			ssh.PublicKeys(signer),
+		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
+
+	// Connect to the VM
+	addr := fmt.Sprintf("%s:%s", host, port)
+	client, err := ssh.Dial("tcp", addr, sshConfig)
+	if err != nil {
+		log.Fatalf("Failed to dial: %v", err)
+	}
+
+	return client
 }
 
 func collect_fs(user string, host string, sourceDir string, destinationDir string, privateKeyPath string) {
@@ -92,9 +123,64 @@ func collect_fs(user string, host string, sourceDir string, destinationDir strin
 func parse_sys_services(output []string) []Service {
 	// Define the exclude service regex list
 	excludeSvcRegexList := []string{
+		`^apparmor\.service$`,
+		`^apport\.service$`,
+		`^blk-availability\.service$`,
+		`^chrony\.service$`,
+		`^cloud-config\.service$`,
+		`^cloud-final\.service$`,
+		`^cloud-init-local\.service$`,
+		`^cloud-init\.service$`,
+		`^console-setup\.service$`,
+		`^cron\.service$`,
+		`^dbus\.service$`,
+		`^finalrd\.service$`,
+		`^getty@tty1\.service$`,
+		`^google-guest-agent\.service$`,
+		`^google-osconfig-agent\.service$`,
+		`^google-shutdown-scripts\.service$`,
+		`^keyboard-setup\.service$`,
+		`^kmod-static-nodes\.service$`,
+		`^lvm2-monitor\.service$`,
+		`^multipathd\.service$`,
+		`^networkd-dispatcher\.service$`,
+		`^packagekit\.service$`,
+		`^plymouth-quit-wait\.service$`,
+		`^plymouth-quit\.service$`,
+		`^plymouth-read-write\.service$`,
+		`^polkit\.service$`,
+		`^rsyslog\.service$`,
+		`^serial-getty@ttyS0\.service$`,
+		`^setvtrgb\.service$`,
+		`^snapd\.apparmor\.service$`,
+		`^snapd\.seeded\.service$`,
+		`^snapd\.service$`,
+		`^ssh\.service$`,
+		`^systemd-binfmt\.service$`,
+		`^systemd-fsck-root\.service$`,
+		`^systemd-fsck@dev-disk-by\\x2dlabel-UEFI\.service$`,
+		`^systemd-journal-flush\.service$`,
+		`^systemd-journald\.service$`,
+		`^systemd-logind\.service$`,
+		`^systemd-machine-id-commit\.service$`,
+		`^systemd-modules-load\.service$`,
+		`^systemd-networkd-wait-online\.service$`,
+		`^systemd-networkd\.service$`,
+		`^systemd-random-seed\.service$`,
+		`^systemd-remount-fs\.service$`,
+		`^systemd-resolved\.service$`,
+		`^systemd-sysctl\.service$`,
+		`^systemd-sysusers\.service$`,
+		`^systemd-tmpfiles-setup-dev\.service$`,
+		`^systemd-tmpfiles-setup\.service$`,
+		`^systemd-udev-trigger\.service$`,
+		`^systemd-udevd\.service$`,
+		`^systemd-update-utmp\.service$`,
+		`^systemd-user-sessions\.service$`,
 		`^ufw\.service$`,
-		`user-runtime-dir@1002.service`,
-		`user@1002.service`,
+		`^unattended-upgrades\.service$`,
+		`^user-runtime-dir@\d+\.service$`, // Matches user-runtime-dir@<any UID>.service
+		`^user@\d+\.service$`,             // Matches user@<any UID>.service
 	}
 
 	// Compile the exclude service regexes and store them in a set
@@ -112,10 +198,11 @@ func parse_sys_services(output []string) []Service {
 		// Check for empty line
 		if service != "" {
 			// Split the service line into fields separated by whitespace delimeter
-			fields := strings.Fields(service)
-			if len(fields) >= 4 {
+			fields := strings.Split(service, "|")
+			if len(fields) >= 3 {
 				name := fields[0]
-				subState := fields[3]
+				subState := fields[1]
+				command := fields[2]
 
 				// Check if the service name matches any of the exclude regexes
 				excluded := false
@@ -129,7 +216,7 @@ func parse_sys_services(output []string) []Service {
 
 				// If the service is not excluded, add it to the list of services
 				if !excluded {
-					services = append(services, Service{Name: name, SubState: subState})
+					services = append(services, Service{Name: name, SubState: subState, Command: command})
 				}
 			}
 		}
@@ -159,36 +246,6 @@ func save_sys_services(services []Service, path string) {
 
 }
 
-func connect_ssh(user string, host string, port string, privateKeyPath string) *ssh.Client {
-	// Create SSH client configuration
-	key, err := os.ReadFile(privateKeyPath)
-	if err != nil {
-		log.Fatalf("Unable to read private key: %v", err)
-	}
-
-	signer, err := ssh.ParsePrivateKey(key)
-	if err != nil {
-		log.Fatalf("Unable to parse private key: %v", err)
-	}
-
-	sshConfig := &ssh.ClientConfig{
-		User: user,
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(signer),
-		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	}
-
-	// Connect to the VM
-	addr := fmt.Sprintf("%s:%s", host, port)
-	client, err := ssh.Dial("tcp", addr, sshConfig)
-	if err != nil {
-		log.Fatalf("Failed to dial: %v", err)
-	}
-
-	return client
-}
-
 func collect_sys_services(user string, host string, port string, privateKeyPath string) {
 	// Connect to the VM through SSH
 	client := connect_ssh(user, host, port, privateKeyPath)
@@ -199,10 +256,11 @@ func collect_sys_services(user string, host string, port string, privateKeyPath 
 		fmt.Println("Connected to the VM successfully!")
 	}
 
-	fmt.Println("Gatheirng ports...")
+	fmt.Println("Gathering system services ...")
 
-	// Run systemctl command to get active services
-	cmd := "systemctl --type=service --state=active --no-pager --no-legend"
+	// Run systemctl command to get active running services and their commands
+	// cmd := "systemctl --type=service --state=active --no-pager --no-legend"
+	cmd := `systemctl list-units --no-pager -ql --type=service --state=running | awk '{printf "%s\0", $1}' | xargs -r0 -I{serviceName} bash -c 'name={serviceName}; sub=$(systemctl show -p SubState --value "$name"); cmd=$(systemctl cat "$name" 2>/dev/null | grep -i "ExecStart=" | awk -F= "{print \$2}" | sed "s/daemon on; /daemon off/g" | sed "s/master_process on;//g"); echo "$name|$sub|$cmd"'`
 	session, err := client.NewSession()
 	if err != nil {
 		log.Fatalf("Failed to create session: %v", err)
@@ -319,12 +377,12 @@ func main() {
 	// )
 
 	// Step 2: Collect active and running system services from source VM
-	// collect_sys_services(
-	// 	"antoniomihailov2001",
-	// 	"34.173.30.91",
-	// 	"22",
-	// 	"/home/toni/.ssh/id_ed25519_gcloud_source_vm",
-	// )
+	collect_sys_services(
+		"antoniomihailov2001",
+		"34.173.30.91",
+		"22",
+		"/home/toni/.ssh/id_ed25519_gcloud_source_vm",
+	)
 
 	// Step 3: Collect exposed ports from source VM
 	// collect_exposed_ports(
@@ -341,14 +399,4 @@ func main() {
 	// 	"exposed-ports.yaml",
 	// 	"Dockerfile",
 	// )
-
-	output := []string{
-		"cron.service loaded active running Regular background program processing daemon",
-		"dbus.service loaded active running D-Bus System Message Bus",
-		"ufw.service loaded active running Uncomplicated Firewall",
-		"user@1002.service loaded active running User Manager for UID 1002",
-	}
-
-	services := parse_sys_services(output)
-	fmt.Println(services)
 }
