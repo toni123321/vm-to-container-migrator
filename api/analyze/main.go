@@ -357,10 +357,6 @@ func collect_exposed_ports(user string, host string, port string, privateKeyPath
 	fmt.Println("Exposed ports collected successfully!")
 }
 
-func convert_to_dockerfile(fsPath string, servicesPath string, portsPath string, dockerfilePath string) {
-
-}
-
 func main() {
 	fmt.Println("Analyze module!")
 
@@ -368,13 +364,13 @@ func main() {
 	create_base_output_dir()
 
 	// Step 1: Collect file system from source VM using default filters
-	// collect_fs(
-	// 	"antoniomihailov2001",
-	// 	"34.173.30.91",
-	// 	"/",
-	// 	"source-vm-fs",
-	// 	"/home/toni/.ssh/id_ed25519_gcloud_source_vm",
-	// )
+	collect_fs(
+		"antoniomihailov2001",
+		"34.173.30.91",
+		"/",
+		"source-vm-fs",
+		"/home/toni/.ssh/id_ed25519_gcloud_source_vm",
+	)
 
 	// Step 2: Collect active and running system services from source VM
 	collect_sys_services(
@@ -385,18 +381,10 @@ func main() {
 	)
 
 	// Step 3: Collect exposed ports from source VM
-	// collect_exposed_ports(
-	// 	"antoniomihailov2001",
-	// 	"34.173.30.91",
-	// 	"22",
-	// 	"/home/toni/.ssh/id_ed25519_gcloud_source_vm",
-	// )
-
-	// Step 4: Convert the collected data to a Dockerfile
-	// convert_to_dockerfile(
-	// 	"source-vm-fs",
-	// 	"sys-services.yaml",
-	// 	"exposed-ports.yaml",
-	// 	"Dockerfile",
-	// )
+	collect_exposed_ports(
+		"antoniomihailov2001",
+		"34.173.30.91",
+		"22",
+		"/home/toni/.ssh/id_ed25519_gcloud_source_vm",
+	)
 }
