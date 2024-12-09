@@ -260,7 +260,7 @@ func collect_sys_services(user string, host string, port string, privateKeyPath 
 
 	// Run systemctl command to get active running services and their commands
 	// cmd := "systemctl --type=service --state=active --no-pager --no-legend"
-	cmd := `systemctl list-units --no-pager -ql --type=service --state=running | awk '{printf "%s\0", $1}' | xargs -r0 -I{serviceName} bash -c 'name={serviceName}; sub=$(systemctl show -p SubState --value "$name"); cmd=$(systemctl cat "$name" 2>/dev/null | grep -i "ExecStart=" | awk -F= "{print \$2}" | sed "s/daemon on; /daemon off/g" | sed "s/master_process on;//g"); echo "$name|$sub|$cmd"'`
+	cmd := `systemctl list-units --no-pager -ql --type=service --state=running | awk '{printf "%s\0", $1}' | xargs -r0 -I{serviceName} bash -c 'name={serviceName}; sub=$(systemctl show -p SubState --value "$name"); cmd=$(systemctl cat "$name" 2>/dev/null | grep -i "ExecStart=" | awk -F= "{print \$2}" | sed "s/daemon on/daemon off/g" | sed "s/master_process on;//g"); echo "$name|$sub|$cmd"'`
 	session, err := client.NewSession()
 	if err != nil {
 		log.Fatalf("Failed to create session: %v", err)
@@ -343,13 +343,8 @@ func collect_exposed_ports(user string, host string, port string, privateKeyPath
 		log.Fatalf("Failed to execute command: %v", err)
 	}
 
-	print(string(output))
-
 	// Parse the output by sending it as list of ports strings
 	ports := parse_exposed_ports(strings.Split(string(output), "\n"))
-
-	fmt.Print(strings.Split(string(output), "\n"))
-	fmt.Print(ports[0])
 
 	// Save the ports to a YAML file
 	save_exposed_ports(ports, "exposed-ports.yaml")
