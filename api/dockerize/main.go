@@ -82,7 +82,7 @@ func create_tar_archive() {
 
 }
 
-func generate_expose_ports_commands(fname string) []string {
+func get_expose_ports(fname string) PortsData {
 	// Read the file containing the exposed ports
 	fullFnamePath := fmt.Sprintf("%s%s", BASE_INPUT_DIR, fname)
 	data, err := os.ReadFile(fullFnamePath)
@@ -96,6 +96,12 @@ func generate_expose_ports_commands(fname string) []string {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error unmarshaling the data: %s\n", err)
 	}
+
+	return portsData
+}
+
+func generate_expose_ports_commands(fname string) []string {
+	portsData := get_expose_ports(fname)
 
 	var exposePortsCmds []string
 	for _, port := range portsData.Ports {
@@ -125,7 +131,7 @@ func generate_run_services_commands(fname string) []string {
 	// Create a slice of strings containing the run services commands
 	var runServicesCmds []string
 	for _, service := range servicesData.Services {
-		runServicesCmds = append(runServicesCmds, fmt.Sprintf("RUN %s", service.Command))
+		runServicesCmds = append(runServicesCmds, fmt.Sprintf("%s &", service.Command))
 	}
 
 	// Return a slice of strings containing the run services commands
@@ -155,10 +161,10 @@ func save_run_services_to_sh(commands []string, outputPath string) error {
 		}
 	}
 
-	// Make the .sh file executable
-	err = os.Chmod(outputPath, 0755)
+	// Keep the script running
+	_, err = file.WriteString("tail -f /dev/null\n")
 	if err != nil {
-		return fmt.Errorf("Error making the .sh file executable: %s", err)
+		return fmt.Errorf("Error writing to the .sh file: %s", err)
 	}
 
 	fmt.Println("Successfully saved run services commands to the .sh file!")
@@ -189,6 +195,13 @@ func generate_dockerfile(tarPath string, exposePortsCmds []string, runServicesSh
 		fmt.Fprintf(os.Stderr, "Error writing to the Dockerfile: %s\n", err)
 	}
 
+	fullRunServicesShPath := fmt.Sprintf("%s%s", BASE_OUTPUT_DIR, runServicesShPath)
+	// Copy the sh script for running the services to the Docker image
+	_, err = file.WriteString(fmt.Sprintf("COPY %s /\n", fullRunServicesShPath))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error writing to the Dockerfile: %s\n", err)
+	}
+
 	// Write the expose ports commands to the Dockerfile
 	for _, cmd := range exposePortsCmds {
 		_, err = file.WriteString(fmt.Sprintf("%s\n", cmd))
@@ -197,8 +210,15 @@ func generate_dockerfile(tarPath string, exposePortsCmds []string, runServicesSh
 		}
 	}
 
-	// Add CMD to run the services using the run services commands .sh file
-	_, err = file.WriteString(fmt.Sprintf("CMD [\"sh\", \"%s\"]\n", runServicesShPath))
+	execRunServicesPath := fmt.Sprintf("/%s", runServicesShPath)
+	// Make the sh script for running the services executable
+	_, err = file.WriteString(fmt.Sprintf("RUN chmod +x %s\n", execRunServicesPath))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error writing to the Dockerfile: %s\n", err)
+	}
+
+	// Execute the sh script for running the services using ENTRYPOINT
+	_, err = file.WriteString(fmt.Sprintf("ENTRYPOINT [\"%s\"]\n", execRunServicesPath))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error writing to the Dockerfile: %s\n", err)
 	}
@@ -228,10 +248,24 @@ func build_docker_image(dockerfilePath string) string {
 	return imageName
 }
 
-func run_docker_container(imageName string) {
+func run_docker_container(imageName string, fnameExposePorts string) {
 	// Run the Docker container using the built image
 	containerName := "dockerized-vm-container"
-	cmdExec := exec.Command("docker", "run", "-d", "--name", containerName, imageName)
+
+	portsData := get_expose_ports(fnameExposePorts)
+
+	portPrefix := "80" // Default prefix for host ports
+	exposePorts := []string{}
+	for _, port := range portsData.Ports {
+		hostPort := portPrefix + port.PortNr
+		containerPort := port.PortNr
+		exposePorts = append(exposePorts, "-p", fmt.Sprintf("%s:%s", hostPort, containerPort))
+	}
+
+	args := append([]string{"run", "-d", "--name", containerName}, exposePorts...)
+	args = append(args, imageName)
+
+	cmdExec := exec.Command("docker", args...)
 
 	// Capture the output of the command
 	cmdExec.Stdout = os.Stdout
@@ -268,5 +302,5 @@ func main() {
 	dockerImgName := build_docker_image("Dockerfile")
 
 	// Run the Docker container using the built image
-	run_docker_container(dockerImgName)
+	run_docker_container(dockerImgName, "exposed-ports.yaml")
 }
