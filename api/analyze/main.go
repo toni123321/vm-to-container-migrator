@@ -82,14 +82,39 @@ func collect_fs(user string, host string, sourceDir string, destinationDir strin
 		"--exclude=/boot/*",
 		"--exclude=/sys/*",
 		"--exclude=/dev/*",
+		"--exclude=/snap/*", // Exclude snap directories
+		"--exclude=/etc/apparmor/*",
+		"--exclude=/etc/apparmor.d/*",
+		"--exclude=/etc/apport/*",
+		"--exclude=/etc/apt/*",
+		"--exclude=/etc/chrony/*",
+		"--exclude=/etc/cloud/*",
+		"--exclude=/etc/cron.d/*",
+		"--exclude=/etc/cron.daily/*",
+		"--exclude=/etc/cron.hourly/*",
+		"--exclude=/etc/cron.monthly/*",
+		"--exclude=/etc/cron.weekly/*",
+		"--exclude=/etc/dbus-1/*",
+		"--exclude=/etc/dpkg/*",
 		"--exclude=/lib/modules/*",
 		"--exclude=/usr/share/man/*",
 		"--exclude=/usr/share/doc/*",
+		"--exclude=/usr/lib/snapd/*",
+		"--exclude=/usr/lib/systemd/*",
+		"--exclude=/usr/lib/apt/*",
+		"--exclude=/usr/lib/dpkg/*",
+		"--exclude=/usr/lib/apparmor/*",
+		"--exclude=/usr/lib/cloud-init/*",
+		"--exclude=/usr/lib/google-cloud-sdk/*", // Exclude google-cloud-sdk directories
 		"--exclude=/var/cache/*",
 		"--exclude=/var/backups/*",
 		"--exclude=/var/tmp/*",
 		"--exclude=/var/run/*",
+		"--exclude=/var/log/*/*", // Exclude all log files
 		"--exclude=/var/lib/lxcfs/*",
+		"--exclude=/var/lib/snapd/*",   // Exclude snapd directories
+		"--exclude=/var/lib/systemd/*", // Exclude systemd directories
+		"--exclude=/var/snap/*",        // Exclude snap directories
 		"--exclude=/run/*",
 	}
 
@@ -107,7 +132,7 @@ func collect_fs(user string, host string, sourceDir string, destinationDir strin
 	// Run rsync command
 	fmt.Printf("Running rsync command: rsync %v\n", args)
 
-	fmt.Println("Gathering file system...")
+	fmt.Println("Gathering file system ...")
 
 	cmd := exec.Command("rsync", args...)
 	cmd.Stderr = os.Stderr
@@ -368,18 +393,18 @@ func main() {
 	)
 
 	// Step 2: Collect active and running system services from source VM
-	collect_sys_services(
-		"antoniomihailov2001",
-		"34.173.30.91",
-		"22",
-		"/home/toni/.ssh/id_ed25519_gcloud_source_vm",
-	)
+	// collect_sys_services(
+	// 	"antoniomihailov2001",
+	// 	"34.173.30.91",
+	// 	"22",
+	// 	"/home/toni/.ssh/id_ed25519_gcloud_source_vm",
+	// )
 
 	// Step 3: Collect exposed ports from source VM
-	collect_exposed_ports(
-		"antoniomihailov2001",
-		"34.173.30.91",
-		"22",
-		"/home/toni/.ssh/id_ed25519_gcloud_source_vm",
-	)
+	// collect_exposed_ports(
+	// 	"antoniomihailov2001",
+	// 	"34.173.30.91",
+	// 	"22",
+	// 	"/home/toni/.ssh/id_ed25519_gcloud_source_vm",
+	// )
 }
