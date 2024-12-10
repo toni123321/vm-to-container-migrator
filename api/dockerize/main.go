@@ -285,8 +285,8 @@ func main() {
 	create_base_output_dir()
 
 	// Step 1: Create a tar archive of the source VM's file system
-	// allow_sudo_for_tar("toni")
-	// create_tar_archive()
+	allow_sudo_for_tar("toni")
+	create_tar_archive()
 
 	// Generate the expose ports commands
 	exposePortsCmds := generate_expose_ports_commands("exposed-ports.yaml")
