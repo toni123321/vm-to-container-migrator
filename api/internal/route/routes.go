@@ -9,8 +9,8 @@ import (
 
 func SetUpRoutes(router *gin.Engine) {
 	// Routes for the analyze endpoint
-	router.POST("/analyze/fs", analyze.AnalyzeFileSystem)
-	router.POST("/analyze/services", analyze.AnalyzeSystemServices)
+	router.POST("/analyze/fs", analyze.AnalyzeApplicationFiles)
+	router.POST("/analyze/services", analyze.AnalyzeServices)
 	router.POST("analyze/ports", analyze.AnalyzeExposedPorts)
 	router.POST("analyze/complete", analyze.CreateCompleteAnalysisProfile)
 

@@ -16,7 +16,10 @@ import (
 
 const BASE_ANALYZE_OUTPUT_DIR = "./output/analyze-output/"
 
-func collectFs(user string, host string, sourceDir string, destinationDir string, privateKeyPath string) (string, error) {
+// Implementation of FsAnalyzer interface, and CommonAnalyzer interface
+type FsAnalyzerImpl struct{}
+
+func (f *FsAnalyzerImpl) collectApplicationFiles(user string, host string, sourceDir string, destinationDir string, privateKeyPath string) (string, error) {
 	// source includes the user and host of the VM, plus the source directory
 	var source string = fmt.Sprintf("%s@%s:%s", user, host, sourceDir)
 	// destination includes the destination directory, concatenated with the base output directory
@@ -92,7 +95,45 @@ func collectFs(user string, host string, sourceDir string, destinationDir string
 	return destination, nil
 }
 
-func collectSysServices(user string, host string, privateKeyPath string) (string, error) {
+func (f *FsAnalyzerImpl) collectExposedPorts(user string, host string, privateKeyPath string) (string, error) {
+	// Connect to the VM through SSH
+	client := utils.ConnectToSsh(user, host, "22", privateKeyPath)
+
+	if client == nil {
+		log.Fatalf("Failed to connect to the VM")
+	} else {
+		fmt.Println("Connected to the VM successfully!")
+	}
+
+	cmd := "sudo ss -tuln | grep LISTEN | grep -vE '(:22 )' | awk '!existing_values[$4]++' | awk -F ' ' '{print $1,$5}' | awk -F'[ :]' '{print $1, $3}'"
+
+	session, err := client.NewSession()
+	if err != nil {
+		log.Fatalf("Failed to create session: %v", err)
+	}
+	defer session.Close()
+
+	// Run the command
+	output, err := session.CombinedOutput(cmd)
+	if err != nil {
+		log.Fatalf("Failed to execute command: %v", err)
+	}
+
+	// Parse the output by sending it as list of ports strings
+	ports := parseExposedPorts(strings.Split(string(output), "\n"))
+
+	// Save the ports to a YAML file
+	path, err := saveExposedPorts(ports, "exposed-ports.yaml")
+
+	if err != nil {
+		log.Fatalf("Failed to save exposed ports: %v", err)
+	}
+
+	fmt.Println("Exposed ports collected successfully!")
+	return path, nil
+}
+
+func (f *FsAnalyzerImpl) collectServices(user string, host string, privateKeyPath string) (string, error) {
 	// Connect to the VM through SSH
 	client := utils.ConnectToSsh(user, host, "22", privateKeyPath)
 
@@ -132,44 +173,6 @@ func collectSysServices(user string, host string, privateKeyPath string) (string
 	fmt.Println("System services collected successfully!")
 
 	return serviceFilePath, nil
-}
-
-func collectExposedPorts(user string, host string, privateKeyPath string) (string, error) {
-	// Connect to the VM through SSH
-	client := utils.ConnectToSsh(user, host, "22", privateKeyPath)
-
-	if client == nil {
-		log.Fatalf("Failed to connect to the VM")
-	} else {
-		fmt.Println("Connected to the VM successfully!")
-	}
-
-	cmd := "sudo ss -tuln | grep LISTEN | grep -vE '(:22 )' | awk '!existing_values[$4]++' | awk -F ' ' '{print $1,$5}' | awk -F'[ :]' '{print $1, $3}'"
-
-	session, err := client.NewSession()
-	if err != nil {
-		log.Fatalf("Failed to create session: %v", err)
-	}
-	defer session.Close()
-
-	// Run the command
-	output, err := session.CombinedOutput(cmd)
-	if err != nil {
-		log.Fatalf("Failed to execute command: %v", err)
-	}
-
-	// Parse the output by sending it as list of ports strings
-	ports := parseExposedPorts(strings.Split(string(output), "\n"))
-
-	// Save the ports to a YAML file
-	path, err := saveExposedPorts(ports, "exposed-ports.yaml")
-
-	if err != nil {
-		log.Fatalf("Failed to save exposed ports: %v", err)
-	}
-
-	fmt.Println("Exposed ports collected successfully!")
-	return path, nil
 }
 
 func parseSysServices(output []string) []model.Service {

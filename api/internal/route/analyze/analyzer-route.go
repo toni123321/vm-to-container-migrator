@@ -13,11 +13,12 @@ type Response struct {
 	Error   string `json:"error,omitempty"`
 }
 
-func AnalyzeFileSystem(context *gin.Context) {
+func AnalyzeApplicationFiles(context *gin.Context) {
 	var req struct {
-		User           string `json:"user" binding:"required"`
-		Host           string `json:"host" binding:"required"`
-		PrivateKeyPath string `json:"privateKeyPath" binding:"required"`
+		User             string `json:"user" binding:"required"`
+		Host             string `json:"host" binding:"required"`
+		PrivateKeyPath   string `json:"privateKeyPath" binding:"required"`
+		AnalyzerApproach string `json:"analyzerApproach" binding:"required"`
 	}
 
 	// Check if JSON request is valid
@@ -29,9 +30,16 @@ func AnalyzeFileSystem(context *gin.Context) {
 	// Create base output directory
 	utils.CreateBaseOutputDir(BASE_ANALYZE_OUTPUT_DIR)
 
+	analyzer, err := GetAnalyzerFactory(req.AnalyzerApproach)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to get analyzer", Error: err.Error()})
+		return
+	}
+
 	sourceDir := "/"
 	destinationDir := "source-vm-fs"
-	result, err := collectFs(req.User, req.Host, sourceDir, destinationDir, req.PrivateKeyPath)
+	result, err := analyzer.collectApplicationFiles(req.User, req.Host, sourceDir, destinationDir, req.PrivateKeyPath)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to collect file system", Error: err.Error()})
@@ -40,11 +48,12 @@ func AnalyzeFileSystem(context *gin.Context) {
 	}
 }
 
-func AnalyzeSystemServices(context *gin.Context) {
+func AnalyzeServices(context *gin.Context) {
 	var req struct {
-		User           string `json:"user" binding:"required"`
-		Host           string `json:"host" binding:"required"`
-		PrivateKeyPath string `json:"privateKeyPath" binding:"required"`
+		User             string `json:"user" binding:"required"`
+		Host             string `json:"host" binding:"required"`
+		PrivateKeyPath   string `json:"privateKeyPath" binding:"required"`
+		AnalyzerApproach string `json:"analyzerApproach" binding:"required"`
 	}
 
 	// Check if JSON request is valid
@@ -56,7 +65,14 @@ func AnalyzeSystemServices(context *gin.Context) {
 	// Create base output directory
 	utils.CreateBaseOutputDir(BASE_ANALYZE_OUTPUT_DIR)
 
-	result, err := collectSysServices(req.User, req.Host, req.PrivateKeyPath)
+	analyzer, err := GetAnalyzerFactory(req.AnalyzerApproach)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to get analyzer", Error: err.Error()})
+		return
+	}
+
+	result, err := analyzer.collectServices(req.User, req.Host, req.PrivateKeyPath)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to collect system services", Error: err.Error()})
@@ -67,9 +83,10 @@ func AnalyzeSystemServices(context *gin.Context) {
 
 func AnalyzeExposedPorts(context *gin.Context) {
 	var req struct {
-		User           string `json:"user" binding:"required"`
-		Host           string `json:"host" binding:"required"`
-		PrivateKeyPath string `json:"privateKeyPath" binding:"required"`
+		User             string `json:"user" binding:"required"`
+		Host             string `json:"host" binding:"required"`
+		PrivateKeyPath   string `json:"privateKeyPath" binding:"required"`
+		AnalyzerApproach string `json:"analyzerApproach" binding:"required"`
 	}
 
 	// Check if JSON request is valid
@@ -81,7 +98,14 @@ func AnalyzeExposedPorts(context *gin.Context) {
 	// Create base output directory
 	utils.CreateBaseOutputDir(BASE_ANALYZE_OUTPUT_DIR)
 
-	result, err := collectExposedPorts(req.User, req.Host, req.PrivateKeyPath)
+	analyzer, err := GetAnalyzerFactory(req.AnalyzerApproach)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to get analyzer", Error: err.Error()})
+		return
+	}
+
+	result, err := analyzer.collectExposedPorts(req.User, req.Host, req.PrivateKeyPath)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to collect exposed ports", Error: err.Error()})
@@ -92,9 +116,10 @@ func AnalyzeExposedPorts(context *gin.Context) {
 
 func CreateCompleteAnalysisProfile(context *gin.Context) {
 	var req struct {
-		User           string `json:"user" binding:"required"`
-		Host           string `json:"host" binding:"required"`
-		PrivateKeyPath string `json:"privateKeyPath" binding:"required"`
+		User             string `json:"user" binding:"required"`
+		Host             string `json:"host" binding:"required"`
+		PrivateKeyPath   string `json:"privateKeyPath" binding:"required"`
+		AnalyzerApproach string `json:"analyzerApproach" binding:"required"`
 	}
 
 	// Check if JSON request is valid
@@ -109,21 +134,28 @@ func CreateCompleteAnalysisProfile(context *gin.Context) {
 	sourceDir := "/"
 	destinationDir := "source-vm-fs"
 
-	_, err := collectFs(req.User, req.Host, sourceDir, destinationDir, req.PrivateKeyPath)
+	analyzer, err := GetAnalyzerFactory(req.AnalyzerApproach)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to get analyzer", Error: err.Error()})
+		return
+	}
+
+	_, err = analyzer.collectApplicationFiles(req.User, req.Host, sourceDir, destinationDir, req.PrivateKeyPath)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to collect file system", Error: err.Error()})
 		return
 	}
 
-	_, err = collectSysServices(req.User, req.Host, req.PrivateKeyPath)
+	_, err = analyzer.collectServices(req.User, req.Host, req.PrivateKeyPath)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to collect system services", Error: err.Error()})
 		return
 	}
 
-	_, err = collectExposedPorts(req.User, req.Host, req.PrivateKeyPath)
+	_, err = analyzer.collectExposedPorts(req.User, req.Host, req.PrivateKeyPath)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to collect exposed ports", Error: err.Error()})
