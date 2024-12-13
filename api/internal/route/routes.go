@@ -12,7 +12,8 @@ func SetUpRoutes(router *gin.Engine) {
 	router.POST("/analyze/fs", analyze.AnalyzeApplicationFiles)
 	router.POST("/analyze/services", analyze.AnalyzeServices)
 	router.POST("analyze/ports", analyze.AnalyzeExposedPorts)
-	router.POST("analyze/complete", analyze.CreateCompleteAnalysisProfile)
+	router.POST("analyze/complete/single-approach", analyze.CreateCompleteAnalysisProfile)
+	router.POST("analyze/complete/mixed-approach", analyze.CreateCompleteAnalysisProfileMixedApproach)
 
 	// Routes for the dockerize endpoint
 	router.POST("/dockerize/dockerfile", dockerize.CreateDockerfile)

@@ -5,13 +5,13 @@ package analyze
 type ProcessAnalyzerImpl struct{}
 
 func (p *ProcessAnalyzerImpl) collectApplicationFiles(user string, host string, sourceDir string, destinationDir string, privateKeyPath string) (string, error) {
-	return "", nil
+	return "Application files collected through process analysis", nil
 }
 
 func (p *ProcessAnalyzerImpl) collectExposedPorts(user string, host string, privateKeyPath string) (string, error) {
-	return "", nil
+	return "Exposed ports collected through process analysis", nil
 }
 
 func (p *ProcessAnalyzerImpl) collectServices(user string, host string, privateKeyPath string) (string, error) {
-	return "", nil
+	return "Services collected through process analysis", nil
 }
