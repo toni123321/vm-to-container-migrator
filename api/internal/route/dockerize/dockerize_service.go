@@ -1,73 +1,21 @@
-package main
+package dockerize
 
 import (
 	"fmt"
 	"os"
 	"os/exec"
+	"vm2cont/api/internal/model"
 
 	"gopkg.in/yaml.v3"
 )
 
-const BASE_INPUT_DIR = "../analyze/migration-output/"
-const BASE_OUTPUT_DIR = "./dockerize-output/"
+const BASE_ANALYZE_OUTPUT_DIR = "./output/analyze-output/"
+const BASE_DOCKERIZE_OUTPUT_DIR = "./output/dockerize-output/"
 
-type Port struct {
-	Protocol string `yaml:"protocol"`
-	PortNr   string `yaml:"portNr"`
-}
-
-type PortsData struct {
-	Ports []Port `yaml:"ports"`
-}
-
-type Service struct {
-	Name     string `yaml:"name"`
-	SubState string `yaml:"substate"`
-	Command  string `yaml:"command"`
-}
-
-// ServicesData is the top-level structure to store services
-type ServicesData struct {
-	Services []Service `yaml:"services"`
-}
-
-// func convert_to_dockerfile(fsPath string, servicesPath string, portsPath string, dockerfilePath string) {
-
-// }
-
-func create_base_output_dir() {
-	// create the base output directory if it does not exist
-	if _, err := os.Stat(BASE_OUTPUT_DIR); os.IsNotExist(err) {
-		os.Mkdir(BASE_OUTPUT_DIR, 0755)
-	}
-}
-
-func allow_sudo_for_tar(usr string) {
-	// Check if the current user can run tar without sudo already
-	cmdCheck := "sudo -l | grep tar"
-	cmdCheckExec := exec.Command("sh", "-c", cmdCheck)
-	if err := cmdCheckExec.Run(); err == nil {
-		fmt.Println("Current user can run tar without sudo!")
-		return
-	}
-
-	// Current user can run tar without sudo through visudo
-	cmd := fmt.Sprintf("echo \"%s ALL=(ALL) NOPASSWD: /bin/tar\" | sudo EDITOR='tee -a' visudo", usr)
-	cmdExec := exec.Command("sh", "-c", cmd)
-
-	fmt.Println("Allowing sudo for the `tar` command ...")
-
-	err := cmdExec.Run()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error allowing sudo for the `tar` command: %s\n", err)
-	}
-
-	fmt.Println("Successfully allowed sudo for the `tar` command!")
-}
-func create_tar_archive() {
+func createTarArchieve(baseInputDir string, baseOutputDir string) {
 	// Create a tar archive of the source VM's file system
-	tarPath := fmt.Sprintf("%ssource-vm-fs.tar.gz", BASE_OUTPUT_DIR)
-	fsPath := fmt.Sprintf("%ssource-vm-fs", BASE_INPUT_DIR)
+	tarPath := fmt.Sprintf("%ssource-vm-fs.tar.gz", baseOutputDir)
+	fsPath := fmt.Sprintf("%ssource-vm-fs", baseInputDir)
 
 	cmd := fmt.Sprintf("sudo tar -czf %s -C %s .", tarPath, fsPath)
 	cmdExec := exec.Command("sh", "-c", cmd)
@@ -82,16 +30,16 @@ func create_tar_archive() {
 
 }
 
-func get_expose_ports(fname string) PortsData {
+func getExposedPorts(fname string) model.PortsData {
 	// Read the file containing the exposed ports
-	fullFnamePath := fmt.Sprintf("%s%s", BASE_INPUT_DIR, fname)
+	fullFnamePath := fmt.Sprintf("%s%s", BASE_ANALYZE_OUTPUT_DIR, fname)
 	data, err := os.ReadFile(fullFnamePath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading the file: %s\n", err)
 	}
 
 	// Unmarshal YAML data into PortsData struct
-	var portsData PortsData
+	var portsData model.PortsData
 	err = yaml.Unmarshal(data, &portsData)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error unmarshaling the data: %s\n", err)
@@ -100,8 +48,8 @@ func get_expose_ports(fname string) PortsData {
 	return portsData
 }
 
-func generate_expose_ports_commands(fname string) []string {
-	portsData := get_expose_ports(fname)
+func generateExposedPortsCommands(fname string) []string {
+	portsData := getExposedPorts(fname)
 
 	var exposePortsCmds []string
 	for _, port := range portsData.Ports {
@@ -112,9 +60,9 @@ func generate_expose_ports_commands(fname string) []string {
 	return exposePortsCmds
 }
 
-func generate_run_services_commands(fname string) []string {
+func generateRunServiceCommands(fname string) []string {
 	// Read the file containing the services
-	fullFnamePath := fmt.Sprintf("%s%s", BASE_INPUT_DIR, fname)
+	fullFnamePath := fmt.Sprintf("%s%s", BASE_ANALYZE_OUTPUT_DIR, fname)
 	data, err := os.ReadFile(fullFnamePath)
 
 	if err != nil {
@@ -122,7 +70,7 @@ func generate_run_services_commands(fname string) []string {
 	}
 
 	// Unmarhsal YAML data into ServicesData struct
-	var servicesData ServicesData
+	var servicesData model.ServicesData
 	err = yaml.Unmarshal(data, &servicesData)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error unmarshaling the data: %s\n", err)
@@ -138,8 +86,8 @@ func generate_run_services_commands(fname string) []string {
 	return runServicesCmds
 }
 
-func save_run_services_to_sh(commands []string, outputPath string) error {
-	fullOutputPath := fmt.Sprintf("%s%s", BASE_OUTPUT_DIR, outputPath)
+func saveRunServicesToSh(commands []string, outputPath string) error {
+	fullOutputPath := fmt.Sprintf("%s%s", BASE_DOCKERIZE_OUTPUT_DIR, outputPath)
 	// Create or open the .sh file
 	file, err := os.Create(fullOutputPath)
 	if err != nil {
@@ -171,9 +119,9 @@ func save_run_services_to_sh(commands []string, outputPath string) error {
 	return nil
 }
 
-func generate_dockerfile(tarPath string, exposePortsCmds []string, runServicesShPath string, outputPath string) {
+func generateDockerfile(tarPath string, exposePortsCmds []string, runServicesShPath string, outputPath string) {
 	// Create or open the Dockerfile
-	fullOutputPath := fmt.Sprintf("%s%s", BASE_OUTPUT_DIR, outputPath)
+	fullOutputPath := fmt.Sprintf("%s%s", BASE_DOCKERIZE_OUTPUT_DIR, outputPath)
 	file, err := os.Create(fullOutputPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating the Dockerfile: %s\n", err)
@@ -189,13 +137,13 @@ func generate_dockerfile(tarPath string, exposePortsCmds []string, runServicesSh
 	}
 
 	// Copy the source VM's file system to the Docker image using ADD and the following format: ADD source-vm-fs.tar.gz /
-	fullTarPath := fmt.Sprintf("%s%s", BASE_OUTPUT_DIR, tarPath)
+	fullTarPath := fmt.Sprintf("%s%s", BASE_DOCKERIZE_OUTPUT_DIR, tarPath)
 	_, err = file.WriteString(fmt.Sprintf("ADD %s /\n", fullTarPath))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error writing to the Dockerfile: %s\n", err)
 	}
 
-	fullRunServicesShPath := fmt.Sprintf("%s%s", BASE_OUTPUT_DIR, runServicesShPath)
+	fullRunServicesShPath := fmt.Sprintf("%s%s", BASE_DOCKERIZE_OUTPUT_DIR, runServicesShPath)
 	// Copy the sh script for running the services to the Docker image
 	_, err = file.WriteString(fmt.Sprintf("COPY %s /\n", fullRunServicesShPath))
 	if err != nil {
@@ -226,8 +174,8 @@ func generate_dockerfile(tarPath string, exposePortsCmds []string, runServicesSh
 	fmt.Println("Successfully generated the Dockerfile!")
 }
 
-func build_docker_image(dockerfilePath string) string {
-	fullDockerfilePath := fmt.Sprintf("%s%s", BASE_OUTPUT_DIR, dockerfilePath)
+func buildDockerImage(dockerfilePath string) (string, error) {
+	fullDockerfilePath := fmt.Sprintf("%s%s", BASE_DOCKERIZE_OUTPUT_DIR, dockerfilePath)
 	imageName := "dockerized-vm"
 
 	// Build the Docker image using the Dockerfile
@@ -245,14 +193,14 @@ func build_docker_image(dockerfilePath string) string {
 
 	fmt.Println("Successfully built the Docker image!")
 
-	return imageName
+	return imageName, nil
 }
 
-func run_docker_container(imageName string, fnameExposePorts string) {
+func runDockerContainer(imageName string, fnameExposePorts string) (string, error) {
 	// Run the Docker container using the built image
 	containerName := "dockerized-vm-container"
 
-	portsData := get_expose_ports(fnameExposePorts)
+	portsData := getExposedPorts(fnameExposePorts)
 
 	portPrefix := "80" // Default prefix for host ports
 	exposePorts := []string{}
@@ -276,31 +224,6 @@ func run_docker_container(imageName string, fnameExposePorts string) {
 	}
 
 	fmt.Println("Running the Docker container ...")
-}
 
-func main() {
-	fmt.Println("Dockerize module!")
-
-	// Create the base output directory if it does not exist
-	create_base_output_dir()
-
-	// Step 1: Create a tar archive of the source VM's file system
-	allow_sudo_for_tar("toni")
-	create_tar_archive()
-
-	// Generate the expose ports commands
-	exposePortsCmds := generate_expose_ports_commands("exposed-ports.yaml")
-	// Generate the run services commands
-	runServicesCmds := generate_run_services_commands("sys-services.yaml")
-	// Save the run services commands to a .sh file
-	save_run_services_to_sh(runServicesCmds, "run-services.sh")
-
-	// Create a Dockerfile using the tar archieve, the expose ports commands, and execute CMD using run services commands .sh file
-	generate_dockerfile("source-vm-fs.tar.gz", exposePortsCmds, "run-services.sh", "Dockerfile")
-
-	// Build the Docker image using the Dockerfile
-	dockerImgName := build_docker_image("Dockerfile")
-
-	// Run the Docker container using the built image
-	run_docker_container(dockerImgName, "exposed-ports.yaml")
+	return containerName, nil
 }
