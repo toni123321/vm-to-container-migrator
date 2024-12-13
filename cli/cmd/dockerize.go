@@ -1,5 +1,6 @@
 /*
-Copyright © 2024 Antonio Takev tonitakev@gmail.com
+Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+
 */
 package cmd
 
@@ -12,9 +13,13 @@ import (
 // dockerizeCmd represents the dockerize command
 var dockerizeCmd = &cobra.Command{
 	Use:   "dockerize",
-	Short: "Create a Dockerfile for the application",
-	Long: `Based on the provided application profile, 
-create a Dockerfile that will be used to build the container image.`,
+	Short: "A brief description of your command",
+	Long: `A longer description that spans multiple lines and likely contains examples
+and usage of using your command. For example:
+
+Cobra is a CLI library for Go that empowers applications.
+This application is a tool to generate the needed files
+to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("dockerize called")
 	},

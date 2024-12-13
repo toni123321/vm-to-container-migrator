@@ -1,10 +1,10 @@
 /*
-Copyright © 2024 Antonio Takev tonitakev@gmail.com
+Copyright © 2024 Antonio Takev tonitakev.com
 
 */
 package main
 
-import "vm2cont/cmd"
+import "vm2cont/cli/cmd"
 
 func main() {
 	cmd.Execute()

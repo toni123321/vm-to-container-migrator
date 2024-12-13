@@ -1,10 +1,12 @@
 /*
-Copyright © 2024 Antonio Takev tonitakev@gmail.com
+Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 */
 package cmd
 
 import (
 	"fmt"
+
+	utils "vm2cont/cli/pkg/utils"
 
 	"github.com/spf13/cobra"
 )
@@ -12,24 +14,77 @@ import (
 // analyzeCmd represents the analyze command
 var analyzeCmd = &cobra.Command{
 	Use:   "analyze",
-	Short: "Analyze the application to be converted",
-	Long: `Analyze what application, configuration and deployment files the application use, 
-what dependencies were installed directly on the VM, etc.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("analyze called")
+	Short: "Perform analysis on the target system",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		analysisType, _ := cmd.Flags().GetString("type")
+		user, _ := cmd.Flags().GetString("user")
+		host, _ := cmd.Flags().GetString("host")
+		privateKeyPath, _ := cmd.Flags().GetString("privateKeyPath")
+
+		// Check if the required flags are provided
+		if user == "" || host == "" || privateKeyPath == "" {
+			return fmt.Errorf("user, host, and privateKeyPath are required flags")
+		}
+
+		payload := map[string]interface{}{
+			"analyzerApproach": analysisType,
+			"user":             user,
+			"host":             host,
+			"privateKeyPath":   privateKeyPath,
+		}
+
+		// Get the output type from the --output flag
+		outputType, _ := cmd.Flags().GetString("output")
+
+		var response []byte
+		var err error
+
+		// If analysisType is "mixed", request more input from the user
+		if analysisType == "mixed" {
+			fmt.Println("Mixed analysis selected. Please provide the following details:")
+			fmt.Print("Enter the strategy for collecting application files: ")
+			var appFilesStrategy string
+			fmt.Scanln(&appFilesStrategy)
+
+			fmt.Print("Enter the strategy for collecting exposed ports: ")
+			var exposedPortsStrategy string
+			fmt.Scanln(&exposedPortsStrategy)
+
+			fmt.Print("Enter the strategy for collecting services: ")
+			var servicesStrategy string
+			fmt.Scanln(&servicesStrategy)
+
+			payload["appFilesStrategy"] = appFilesStrategy
+			payload["exposedPortsStrategy"] = exposedPortsStrategy
+			payload["servicesStrategy"] = servicesStrategy
+
+			response, err = utils.MakeRequest("POST", "http://localhost:8001/analyze/complete/mixed-approach", payload)
+			if err != nil {
+				return err
+			}
+		} else {
+			response, err = utils.MakeRequest("POST", "http://localhost:8001/analyze/complete/single-approach", payload)
+			if err != nil {
+				return err
+			}
+		}
+
+		// Use HandleResponse for output
+		if err := utils.HandleResponse(response, outputType); err != nil {
+			return fmt.Errorf("failed to handle response: %w", err)
+		}
+
+		// fmt.Println("Analysis result:", response)
+		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(analyzeCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// analyzeCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// analyzeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// Add a flag to add type of analysis - file system, process, or mixed
+	analyzeCmd.Flags().StringP("type", "t", "fs", "Type of analysis to perform. Options are: file, process, mixed")
+	analyzeCmd.Flags().StringP("user", "", "", "Username for SSH connection")
+	analyzeCmd.Flags().StringP("host", "", "", "Host for SSH connection")
+	analyzeCmd.Flags().StringP("privateKeyPath", "", "", "Path to private key for SSH connection")
 }
