@@ -14,7 +14,7 @@ import (
 // analyzeCmd represents the analyze command
 var analyzeCmd = &cobra.Command{
 	Use:   "analyze",
-	Short: "Perform analysis on the target system",
+	Short: "Perform analysis on the target VM where the application is running",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		analysisType, _ := cmd.Flags().GetString("type")
 		user, _ := cmd.Flags().GetString("user")
@@ -74,7 +74,6 @@ var analyzeCmd = &cobra.Command{
 			return fmt.Errorf("failed to handle response: %w", err)
 		}
 
-		// fmt.Println("Analysis result:", response)
 		return nil
 	},
 }
@@ -83,7 +82,7 @@ func init() {
 	rootCmd.AddCommand(analyzeCmd)
 
 	// Add a flag to add type of analysis - file system, process, or mixed
-	analyzeCmd.Flags().StringP("type", "t", "fs", "Type of analysis to perform. Options are: file, process, mixed")
+	analyzeCmd.Flags().StringP("type", "t", "fs", "Type of analysis to perform. Options are: fs, process, mixed")
 	analyzeCmd.Flags().StringP("user", "", "", "Username for SSH connection")
 	analyzeCmd.Flags().StringP("host", "", "", "Host for SSH connection")
 	analyzeCmd.Flags().StringP("privateKeyPath", "", "", "Path to private key for SSH connection")

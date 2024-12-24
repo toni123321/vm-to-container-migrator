@@ -1,11 +1,11 @@
 /*
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
 	"fmt"
+	"vm2cont/cli/pkg/utils"
 
 	"github.com/spf13/cobra"
 )
@@ -13,28 +13,49 @@ import (
 // dockerizeCmd represents the dockerize command
 var dockerizeCmd = &cobra.Command{
 	Use:   "dockerize",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Perform the dockerization of the application, converting it to a container",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		dockerImageName, _ := cmd.Flags().GetString("dockerImageName")
+		dockerContainerName, _ := cmd.Flags().GetString("dockerContainerName")
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("dockerize called")
+		// Check if the required flags are provided
+		if dockerImageName == "" || dockerContainerName == "" {
+			return fmt.Errorf("dockerImageName and dockerContainerName are required flags")
+		}
+
+		payload := map[string]interface{}{
+			"dockerImageName":     dockerImageName,
+			"dockerContainerName": dockerContainerName,
+		}
+
+		// Get the output type from the --output flag
+		outputType, _ := cmd.Flags().GetString("output")
+
+		var response []byte
+		var err error
+
+		// Perform the dockerization process
+		fmt.Println("Performing dockerization...")
+
+		// Make a call to the dockerization API
+		response, err = utils.MakeRequest("POST", "http://localhost:8001/dockerize/complete", payload)
+		if err != nil {
+			return err
+		}
+
+		// Use HandleResponse for output
+		if err := utils.HandleResponse(response, outputType); err != nil {
+			return fmt.Errorf("failed to handle response: %w", err)
+		}
+
+		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(dockerizeCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// dockerizeCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// dockerizeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// Add flags for the dockerize command
+	dockerizeCmd.Flags().StringP("dockerImageName", "", "", "Name of the Docker image to be built")
+	dockerizeCmd.Flags().StringP("dockerContainerName", "", "", "Name of the Docker container to be created")
 }

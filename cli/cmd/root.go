@@ -15,7 +15,7 @@ var rootCmd = &cobra.Command{
 	Use:   "cli",
 	Short: "Converts an application from VM to a container",
 	Long: `vm2cont is a tool that migrate applications residing in VMs 
-to container so that they can be run and deployed on different 
+to containers so that they can be run and deployed on different 
 platforms and be used in Kubernetes clusters.`,
 	Version: "1.0.0",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
