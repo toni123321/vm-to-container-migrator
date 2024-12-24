@@ -1,6 +1,7 @@
 package analyze
 
 import (
+	"fmt"
 	"net/http"
 	"vm2cont/api/internal/utils"
 
@@ -141,28 +142,30 @@ func CreateCompleteAnalysisProfile(context *gin.Context) {
 		return
 	}
 
-	_, err = analyzer.collectApplicationFiles(req.User, req.Host, sourceDir, destinationDir, req.PrivateKeyPath)
+	resultApplicationFiles, err := analyzer.collectApplicationFiles(req.User, req.Host, sourceDir, destinationDir, req.PrivateKeyPath)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to collect file system", Error: err.Error()})
 		return
 	}
 
-	_, err = analyzer.collectServices(req.User, req.Host, req.PrivateKeyPath)
+	resultServices, err := analyzer.collectServices(req.User, req.Host, req.PrivateKeyPath)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to collect system services", Error: err.Error()})
 		return
 	}
 
-	_, err = analyzer.collectExposedPorts(req.User, req.Host, req.PrivateKeyPath)
+	resultExposedPorts, err := analyzer.collectExposedPorts(req.User, req.Host, req.PrivateKeyPath)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to collect exposed ports", Error: err.Error()})
 		return
 	}
 
-	context.JSON(http.StatusOK, Response{Message: "Successfully collected the file system, system services, and exposed ports"})
+	completeResult := fmt.Sprintf("Successfully analyzed application files, services, and exposed ports\nApplication files: %s\nServices: %s\nExposed ports: %s", resultApplicationFiles, resultServices, resultExposedPorts)
+
+	context.JSON(http.StatusOK, Response{Message: completeResult})
 }
 
 func CreateCompleteAnalysisProfileMixedApproach(context *gin.Context) {
@@ -230,27 +233,28 @@ func CreateCompleteAnalysisProfileMixedApproach(context *gin.Context) {
 	mixedAnalyzer.SetExposedPortsStrategy(strategyImplExposedPorts)
 	mixedAnalyzer.SetServicesStrategy(strategyImplServices)
 
-	applicationFiles, err := mixedAnalyzer.collectApplicationFiles(req.User, req.Host, sourceDir, destinationDir, req.PrivateKeyPath)
+	resultApplicationFiles, err := mixedAnalyzer.collectApplicationFiles(req.User, req.Host, sourceDir, destinationDir, req.PrivateKeyPath)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to collect file system", Error: err.Error()})
 		return
 	}
 
-	services, err := mixedAnalyzer.collectServices(req.User, req.Host, req.PrivateKeyPath)
+	resultServices, err := mixedAnalyzer.collectServices(req.User, req.Host, req.PrivateKeyPath)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to collect system services", Error: err.Error()})
 		return
 	}
 
-	exposedPorts, err := mixedAnalyzer.collectExposedPorts(req.User, req.Host, req.PrivateKeyPath)
+	resultExposedPorts, err := mixedAnalyzer.collectExposedPorts(req.User, req.Host, req.PrivateKeyPath)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, Response{Message: "Failed to collect exposed ports", Error: err.Error()})
 		return
 	}
 
-	// Print JSON with all the results collected (applicationFiles, services, exposedPorts) following this format: {"applicationFiles": "result", "services": "result", "exposedPorts": "result"}
-	context.JSON(http.StatusOK, gin.H{"applicationFiles": applicationFiles, "services": services, "exposedPorts": exposedPorts})
+	completeResult := fmt.Sprintf("Successfully analyzed application files, services, and exposed ports\nApplication files: %s\nServices: %s\nExposed ports: %s", resultApplicationFiles, resultServices, resultExposedPorts)
+
+	context.JSON(http.StatusOK, Response{Message: completeResult})
 }

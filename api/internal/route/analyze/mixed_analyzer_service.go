@@ -9,6 +9,8 @@ type MixedAnalyzerImpl struct {
 }
 
 // Methods to allow chaning of strategies dynamically
+// Strategy design pattern used
+
 func (m *MixedAnalyzerImpl) SetApplicationFileStrategy(strategy IAnalyzerFactory) {
 	m.applicationFileStrategy = strategy
 }

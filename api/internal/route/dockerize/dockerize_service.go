@@ -24,7 +24,7 @@ func createTarArchieve(baseInputDir string, baseOutputDir string) {
 
 	err := cmdExec.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating tar archive: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error creating tar archive: %s\n", err.Error())
 	}
 	fmt.Println("Successfully created tar archive of the source VM's file system!")
 
@@ -174,9 +174,8 @@ func generateDockerfile(tarPath string, exposePortsCmds []string, runServicesShP
 	fmt.Println("Successfully generated the Dockerfile!")
 }
 
-func buildDockerImage(dockerfilePath string) (string, error) {
+func buildDockerImage(dockerfilePath string, imageName string) (string, error) {
 	fullDockerfilePath := fmt.Sprintf("%s%s", BASE_DOCKERIZE_OUTPUT_DIR, dockerfilePath)
-	imageName := "dockerized-vm"
 
 	// Build the Docker image using the Dockerfile
 	cmd := exec.Command("docker", "build", "-t", imageName, "-f", fullDockerfilePath, ".")
@@ -196,10 +195,8 @@ func buildDockerImage(dockerfilePath string) (string, error) {
 	return imageName, nil
 }
 
-func runDockerContainer(imageName string, fnameExposePorts string) (string, error) {
+func runDockerContainer(imageName string, fnameExposePorts string, containerName string) (string, error) {
 	// Run the Docker container using the built image
-	containerName := "dockerized-vm-container"
-
 	portsData := getExposedPorts(fnameExposePorts)
 
 	portPrefix := "80" // Default prefix for host ports

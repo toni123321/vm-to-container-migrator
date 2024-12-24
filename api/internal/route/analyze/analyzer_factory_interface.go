@@ -5,7 +5,7 @@ import (
 )
 
 // Common interface for analyzing
-// Abstract factory pattern used
+// Abstract factory design pattern used
 type IAnalyzerFactory interface {
 	collectApplicationFiles(user string, host string, sourceDir string, destinationDir string, privateKeyPath string) (string, error)
 	collectExposedPorts(user string, host string, privateKeyPath string) (string, error)
