@@ -79,3 +79,31 @@ cli/
 - 📄 **Research Paper**: Written in **LaTeX**
 - 📚 **Citations**: Managed with **Scribbr** and **BibTeX**
 - 📝 **Notes**: Organized using **Zettlr** and **Markdown**
+
+## Run the system
+
+### Analyze the target VM
+
+The command analyzes the target VM, containing the application to be migrated. Based on the analysis it creates an application profile with the collected application files, ports, and services.
+
+Example usage of the command:
+
+```sh
+go run main.go analyze \      
+  --type=fs \                      
+  --user=<username> \
+  --host=<IP> \
+  --privateKeyPath=<Path to the SSH key>
+```
+
+### Dockcerize the application
+
+The command containerize the application using the application profile from the Analyze command. The result is a running Docker container with the application which is working and can be tested.
+
+Example usage of the command:
+
+```sh
+go run main.go dockerize \      
+  --dockerImageName=dockerized-vm \
+  --dockerContainerName=dockerized-vm-container
+```
