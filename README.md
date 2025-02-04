@@ -6,7 +6,7 @@ This is the GitHub repo for the project "Virtual machine to container migration 
 
 ### Structure overview
 
-```
+```sh
 vm-to-container-migrator/
 │
 ├── api/             # The "api" folder contains the code base for the back-end API part of the project, 
@@ -24,7 +24,7 @@ vm-to-container-migrator/
 
 ### API
 
-```
+```sh
 api/
 │
 ├── internal/         # It is a magic folder in Golang that prevents other projects from importing code 
@@ -48,7 +48,7 @@ api/
 
 ### CLI
 
-```
+```sh
 cli/
 │
 ├── cmd/             # Contains the commands for the CLI application
@@ -72,7 +72,6 @@ cli/
 - 💻 **CLI**: Implemented in **Golang** using the **Cobra** library for building command-line tools.
 - 🐧 **OS**: Runs on **Ubuntu**, a popular Linux distribution.
 - ⚙️ **Scripting & Experiments**: Developed using **Ansible** for automation and **Golang** for prototyping and experimentation.
-
 
 ## Research stack
 
@@ -107,3 +106,11 @@ go run main.go dockerize \
   --dockerImageName=dockerized-vm \
   --dockerContainerName=dockerized-vm-container
 ```
+
+## Research
+
+The project was research-oriented and one of the core outcomes of it was delivering an academic [Research paper](./Research-paper.pdf).
+
+## Demo
+
+The practical outcome of the project can be visualized through a [demo](./Demo.mp4) which outlines the core features.
