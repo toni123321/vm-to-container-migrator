@@ -109,7 +109,7 @@ go run main.go dockerize \
 
 ## Research
 
-The project was research-oriented and one of the core outcomes of it was delivering an academic [Research paper](./Research-paper.pdf).
+The project was research-oriented and one of the core outcomes of it was delivering an academic [Research paper](./research-paper/Research-paper.pdf).
 
 ## Demo
 

@@ -1,0 +1,46 @@
+\documentclass[11pt, twocolumn]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} 
+
+% Automated the Figure referencing and make it fully clickable
+% \newcommand{\FigRef}[1]{Figure~\ref{#1}}
+\newcommand{\FigRef}[1]{\hyperref[#1]{Figure~\ref{#1}}}
+
+\title{
+    VM to container migration system \\(vm2cont)
+}
+\author{
+    Antonio Takev
+} 
+\date{December 2024}
+
+
+\begin{document}
+
+\maketitle
+
+% Abstract and Keywords in single-column format
+\begin{abstract}
+Bla bla
+\end{abstract}
+
+\textbf{Keywords:} containerization, black-box migration, dockerization, file system analysis
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{images/agentless-collector.png}
+    \caption{Caption}
+    \label{fig:be}
+\end{figure}
+
+\section{References}
+\nocite{*}
+\bibliographystyle{plain} % We choose the "plain" reference style
+\bibliography{references}
+
+\section{Appendices}
+Additional material supporting the main content.
+
+\end{document}
+

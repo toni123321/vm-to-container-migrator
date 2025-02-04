@@ -1,0 +1,527 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{multicol} % For two-column layout
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage{float}
+\usepackage[margin={2cm,2cm}]{geometry}
+\setlength{\columnsep}{1cm}
+\usepackage{xcolor} % to access the named colour LightGray
+\definecolor{LightGray}{gray}{0.95}
+\usepackage{minted}
+\usepackage{caption}
+\usepackage{cprotect}
+\usepackage{csquotes}
+\usepackage{listings}
+\usepackage{color}
+\lstset{
+    showstringspaces=false,
+    basicstyle=\ttfamily,
+    keywordstyle=\color{blue},
+    commentstyle=\color[grey]{0.6},
+    stringstyle=\color[RGB]{255,150,75}
+}
+\usepackage[
+sorting=none
+]{biblatex}
+\addbibresource{references.bib}
+\usepackage[toc,page]{appendix}
+
+
+% Automated the Figure referencing and make it fully clickable
+% \newcommand{\FigRef}[1]{Figure~\ref{#1}}
+\newcommand{\FigRef}[1]{\hyperref[#1]{Figure~\ref{#1}}}
+
+\newcommand{\inlinecode}[2]{\colorbox{LightGray}{\lstinline[language=#1]$#2$}}
+
+\newenvironment{code}{\captionsetup{type=figure}}{}
+
+\renewenvironment{abstract}
+ {\par\noindent{\Large\textbf{\abstractname}}\par \vspace{1em}}
+ {\par\noindent\medskip}
+
+\makeatletter
+\renewcommand{\maketitle}{
+  % Center the title (default behavior)
+  \begin{center}
+    \LARGE \textbf{\@title}
+  \end{center}
+  % Left-align the author and date
+  \vspace{0.4cm}
+  \begin{flushleft}
+    \@author \\[0.5em]  % Optional: adds space after author
+    \@date
+  \end{flushleft}
+}
+\makeatother
+
+\title{
+    Virtual machine to container migration system
+}
+\author{
+    Antonio Takev \\
+    \href{mailto:tonitakev@gmail.com}{tonitakev@gmail.com} \\
+    Master of Applied IT, Fontys University
+}
+\date{January 2025, Eindhoven, Netherlands}
+
+\begin{document}
+\maketitle
+
+{\color{gray}\hrule}
+\vspace{0.4cm}
+\begin{abstract}
+In software engineering, containers have become very popular in the last few years due to their advantages such as increased portability, operational stability, and lightweight design, over virtual machines. Companies start migrating their application from virtual machines to containers but there is a lack of tools and knowledge on automating such migrations. The goal is to design the software architecture and infrastructure of a system that can perform automated migrations of applications from virtual machines to containers. By combining system analysis and design, expert evaluation, prototyping, and testing as a cycle-based methodology to tackle the issue, the paper successfully designed an enterprise-level software system that can transfer a stateless application such as a web server from an Ubuntu-based virtual machine to a Docker container. More research needs to be completed to enhance the business logic of the system so that it can migrate more complex stateless and stateful applications. Focusing on different aspects of the system's lifecycle such as Black-box migration, Software architecture, Software Design patterns, User experience, and Infrastructure management, the study forms a solution that is flexible, extensible, user-friendly, and can be the basis of an innovative way to modernize through containerization software applications owned or managed by companies of all sizes.
+\end{abstract}
+
+\vspace{1em} % Space after abstract
+\noindent\textbf{Keywords:} \textit{virtual machine, containerization, black-box migration, analysis, dockerization, file system analysis} \\
+\noindent{\color{gray}\hrule}
+
+% Start two-column layout
+\begin{multicols}{2}
+
+\section{Introduction}
+The software industry is continuously growing and has gone through a natural evolution from native to virtualized, to cloud, and now to container technology, making the term containerization quite popular among developers and companies of all sizes \cite{SiddiquiEtAl-2020}. Containerization is a method for virtualizing programs \cite{VermaEtAl-2022} and the container is a lightweight alternative to virtual machines to co-host multiple applications on a single server \cite{GargEtAl-2024}. The shipment of containers-based applications makes them available, tested, and deployed on many servers \cite{VermaEtAl-2022} providing independent plans for upgrades and maintenance \cite{SiddiquiEtAl-2020}. Before containers, developers had to face many challenges when migrating an application from one virtual machine environment to another as usually no two environments are similar in terms of both software and hardware capabilities \cite{SiddiquiEtAl-2020} and it is hard to examine what is running and had been installed on the virtual machine so that it can be replicated in the new environment. As containerization gained popularity, many companies started migrating from virtual machines to containers for their legacy applications. The topic is not new and there are some technologies like KubeVirt, Virtlet, and RancherVM which at first glance seem to work on the issue of automated migrations. However, they do not make any migration, instead, they provide a way to run virtual machines in Kubernetes clusters directly (KubeVirt, Virtlet)\cite{Sheldon-2022} or package them in Docker images (RancherVM) \cite{Baccini-2021}. The only product that provides a tool to make an actual migration is Migrate to Container \cite{Google-2024}, offered by Google Cloud. However, this tool works in the close-sourced environment of Google and it can be used only if the migration of an application from VM\footnote{VM - Virtual machine is in short the virtualization of a computer system} to container will be performed within the Google Cloud ecosystem. Considering the lack of tools or systems to migrate applications residing in virtual machines to containers, the research paper takes this as a main research gap. While usually automation issues are considered problems that can be solved through scripts, this research paper aims to go beyond this and research the possibilities of designing an enterprise-level system that can transfer applications from VMs to containers focusing on different topics that have to make the system life cycle complete. Moreover, the system will introduce the term "black-box migration", used to describe that the system can perform a migration without or with minimum prior knowledge of the type, structure and technical stack of the application to be migrated. In the paper, several segments of the system will be closely examined as separate but connected topics: Black-box migration, Software architecture design, Software design patterns, User experience, and Infrastructure management. The research paper aims to design the software architecture and infrastructure of a software system that automates the process of migrating stateless applications from virtual machines to containers so that the applications can be deployed in Kubernetes clusters.
+
+\subsection{Industry case}
+Many companies moved some or all of their applications from virtual machines to containers and eventually Kubernetes clusters and one good example is Sue. Sue is a Netherlands-based company that specializes in cloud-native technologies. They have built a cloud platform called Multistax which hosts applications on Kubernetes clusters to use the power of containers. However, around 70\% of their workloads at the moment are still residing in virtual machines and they need a way to migrate all their applications residing in virtual machines to containers. To modernize its infrastructure and apply containerization, companies like Sue aim to automate the process of migrating applications from virtual machines to containers and therefore Kubernetes clusters. To cover all this, Sue has created the project “Application Profiling” to research how to gather the various dependencies, components, and configurations necessary for the application’s migration from a VM to a containerized environment\footnote{containerized environment - Term used to describe a software environment in which the application is deployed in a container}. During the first iteration of the project, a group of students from the Bachelor’s in ICT\footnote{ICT - Information and communications technologies covers all technical means used to handle information and aid communication} and Software Engineering at Fontys University of Applied Sciences developed a tool that could extract and describe the files and packages from a VM and generate a Dockerfile\footnote{Dockerfile - It is a text document that contains all the commands a user could call on the command line to assemble an image in the context of containers}. The tool was built to gather a list of packages, configuration, and application files from a VM and then build a Dockerfile based on them using AI and more specifically ChatGPT. The solution required manual work and was not extensible which made the stakeholders from Sue not so confident in the advantages of using AI to fulfill the project needs. As a sponsor for this research, the goal of the stakeholders from Sue is to overcome the limitations of the first iteration by automating the generation of an application profile and the creation of a container based on it.
+
+\section{Literature review}
+The concept of containerization, as stated in \cite{Bhat-2022}, can be found in early 1979 with the introduction of UNIX\footnote{UNIX - It is a family of multitasking, multi-user computer operating systems} Version 7 which allowed process isolation by changing the root directory of a process. As stated in \cite{SiddiquiEtAl-2020} using containers results in operational efficiency as containers package the applications with all their required dependencies in terms of software, libraries, configuration files, binaries, and other required data to execute the application. This helps developers run the application in any environment already shipped with all its dependencies \cite{SiddiquiEtAl-2020}, and the use of a container benefits both the development and deployment of software \cite{VermaEtAl-2022}. In the context of containers, there are two main terms: an image and a container. Defined by \cite{HaleEtAl-2017}, an image is an immutable file that contains a description of a complete computing environment (e.g., libraries, executables, default networking configuration) that can be used by a runtime such as Docker to create a container. A container, as stated in \cite{HaleEtAl-2017}, is a runtime instantiation of a particular image and it is possible to have many containers based on the same image. As described in \cite{HaleEtAl-2017}, an image can be built using a Dockerfile, a sequence of some Docker-specific directives and shell script commands that prescribe the entire build process and runtime configuration of a software environment. The transition from VM-based to container-based environments is gaining traction, as containers provide better performance and resource efficiency while still addressing challenges like isolation and dependability \cite{GargEtAl-2024}. As stated in \cite{Yade-2022}, containers are more portable as they run in every environment, and faster as they run almost instantly. There are several well-known tools to make use of VMs in Kubernetes clusters, examples of which are KubeVirt, Virtlet \cite{Sheldon-2022}, and RancherVM \cite{Baccini-2021}, but they do not perform any migration. They place already functioning virtual machines into more complicated environments like Kubernetes clusters which will eventually produce bugs and increase the complexity. The research found only one tool (Migrate to Containers\cite{Google-2024}) that can perform a migration of an application residing in a VM to a container. As stated in \cite{Google-2024}, Google Migrate to Containers is a tool designed to convert VM-based workloads into containers within Google Kubernetes Engine (GKE) or GKE Enterprise. This tool supports migrating workloads from on-premises VMware environments or Google Computer Engine \cite{Google-2024}, while tools like RancherVM provide a solution for packaging and running VMs as Docker containers \cite{Baccini-2021}, thus allowing VMs to be managed as if they were containers within Docker. KubeVirt allows the management of applications residing in VMs through Kubernetes by enabling VMs to be run as Kubernetes pods \cite{Sheldon-2022}. Virtlet is a similar tool \cite{Sheldon-2022} that is not anymore maintained according to their official \href{Github repository}{https://github.com/Mirantis/virtlet}.
+Google Migrate to Containers supports the modernization of the following workloads: Linux VM containers, Linux-based workloads (Tomcat, Apache, JBoss, WebSphere, WordPress sites), and Windows IIS applications \cite{Google-2024}. Migrate to Containers by Google supports migrations of VMs to containers on Google Kubernetes Engine on the following 64-bit Linux operating systems: CentOS, Debian, RHEL, SUSE, and Ubuntu \cite{Google-2024}. The tool supports all Linux-based operating systems for Linux-based workloads \cite{Google-2024}. Google Migrate to Containers provides possibilities to migrate VMs to containers on different Linux distributions through a CLI tool that collects the file system \cite{Google-2024}. Containers being a packaging unit for any application and producing operating system level virtualization \cite{SiddiquiEtAl-2020}, can be viewed as a core principle of achieving system deployments and runtime portability across different operating systems.
+In the documentation of Google Migrate to Containers \cite{Google-2024}, it is stated that they copy the file system of the target machine and perform analysis on it. In this paper this approach will be recalled under the name: "file system analysis" and it can be used to migrate an application from a VM to a container. In Linux, everything is a file \cite{Torvalds-2002}, allowing such an approach to be able to get the application files, exposed ports, and services used by an application that has to be transferred from a virtual machine environment to a container environment. In all operating systems, there is one abstraction, called process, which can be defined as an "instance of a program in execution" or as "the execution context" of a running program \cite{BovetEtAl-2005} which provides a second option to see what an application is using in terms of application files, exposed ports, and services. 
+To design a software system, the first step is to organize its components in a software architecture. Software architecture plays a main role in providing scalability and maintainability and aligning technical decisions with business objectives \cite{Nivedhaa-2024}. Recent trends emphasize microservices, and cloud-native architectures as key approaches to achieve these goals \cite{Nivedhaa-2024} and modular monolith as an approach that is gaining popularity \cite{SuEtAl-2024}. As stated in \cite{Nivedhaa-2024}, modularity, loose coupling, and high cohesion are some of the best practices to make a scalable and fault-tolerant software system. In the world of enterprise-level software systems, big and small companies tried microservices. As stated by \cite{SuEtAl-2024} some gain advantages like independent development and deployment of the core units of their software while others do not get the expected benefits and experience issues such as high costs and complexity of the system. As explained in \cite{SuEtAl-2024}, Modular monoliths are organized in well-defined, isolated modules that can be worked independently but deployed as a single unit. The well-known principle of separation of concerns (SoC) can be used to decompose software systems into manageable units \cite{Daga-2006}, particularly useful in the context of an enterprise-level migration system that has the potential to grow and improve its success rate. Decomposition of the system into units will help achieve ease of change, more localized maintenance, and reuse \cite{Daga-2006}. Going more in-depth into the solution, people usually try to solve commonly occurring problems in their systems. Such issues can be solved through the use of design patterns. By definition, design patterns are well-known and good solutions to a common problem \cite{Martin-2000} and provide several benefits such as reusable software, reduced complexity, reduction of learning time, and helping novices perform like experts \cite{GammaEtAl-1993}. Design patterns gained popularity through OOP\footnote{OOP - Object-oriented programming is a computer programming paradigm that organizes software design around data, or objects, rather than functions and logic} and the trend of using various principles and best practices to make the code base more powerful and future-proven. Design patterns vary in their purpose and goals and are commonly organized in the following families: Creational, Structural, and Behavioral \cite{GammaEtAl-1993} and can be used alone or in combination no matter which family they originate from. Creational family abstracts how objects are used by hiding the specifics of the creation process, Behavioral design patterns focus on the relationship between objects or classes, and Structural patterns are used to combine objects and classes into larger structures while keeping them flexible \cite{GammaEtAl-1993}. 
+
+\section{Methodology}
+To design a software system to migrate an application from a virtual machine to a container a custom Agile-inspired approach with 4 phases was created \FigRef{fig:work_approach} combining different research methods, the Technology Impact Cycle Tool (TICT) for Ethical check, and the Agile mindset. By design, Agile is a way to respond to changes and succeed in an uncertain and turbulent environment and as Agile Manifesto stands \cite{BeckEtAl-2001} the aim is to deliver results by frequently promoting reflection on the work at regular intervals of time and maintenance of constant working pace. As in software development, in the academic research domain, the project context, direction, and requirements are continuously changing based on the findings and experiments, which requires a flexible approach with the possibility to go back and forth and make adjustments. The research approach consists of the following phases: Analysis, Design, Expert review, and Prototype \& Test. The approach is in the form of a cycle of these steps which is completed once the results are satisfying but several iterations of the cycle were made to achieve the desired results.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/approach.png}
+    \caption{Work Approach}
+    \label{fig:work_approach}
+\end{figure}
+
+A combination of research methods was used to support and cover different views and aspects of ICT-oriented research in this paper. During the Analysis phase, the problem and context of this research paper were closely examined and a thorough background research was performed on the topics of containerization, application profiling, and software architecture. To find the well-known architecture styles, best practices in the architecture design, or ideas, rules, and trends for making user-friendly command-line interfaces, a Literature review was performed. In addition to the literature review, Design pattern research was also used to design the system to be extensible and flexible, and the code base to be organized and following best practices in the enterprise software domain. Detailed background research on the topics of containerization, migration strategies, architecture design, and design patterns was conducted. As part of the background research, a list of research papers was closely examined and the gathered data was structured into the following sections: General information, Concepts and Definitions, Research gaps and supporting evidence, Relevant results, and Inspiration. During the analysis phase, an Ethical check was also performed.
+The system's architecture design was set as a primary goal from the start which required the IT architecture of the system to be sketched so that the system can perform a black-box migration of an application from VM to container. During the design phase, various well-known architectural styles such as Monolithic, N-layer, Headless, and Microservices were examined and mixed to provide several suggestions for a custom-based architectural style that fulfill the system requirements. To make the system more flexible and extensible, two software design patterns were integrated. To design the system for the user needs, a close look at the user experience was taken, searching for best practices in organizing the software components of the system so that it remains lightweight and loosely coupled. The designs were discussed with experts from the industry field and professors in the area of software engineering and infrastructure from Fontys University.
+As a natural result of the design step, prototyping was used to build a PoC for showcasing the system component of black-box migration using file system analysis as a main migration approach. To prove the software design of the system the PoC was developed to be able to migrate a Nginx web server as a traditional example of a stateless application. The web server was deployed on a Virtual machine with Ubuntu 22.04 (a well-known Linux flavor) on Google Cloud and SSH access was provided. The goal of the PoC was to analyze the VM and find the application files, ports, and services of the web server and then create an application profile which results in a fully-working Docker container with the web server.
+Finally, Non-functional tests were conducted to validate the success rate of the system and its usability capabilities. The results were presented in the form of sections part of the system's life cycle. The PoC was tested to see how complete the result of migrating a Nginx web server from a Ubuntu VM to a Docker container was. The last point of the research methodology was to design and explain the infrastructure strategy for managing the system components.
+
+\subsection{Ethical check}
+An ethical check on the system was performed to introduce some insights into whether the system was built to support user's needs while keeping its functionalities legitimate. In terms of human values, it was determined the system can replace the manual process of migrating an application from a VM to a container in a more automated way. As a result, users of the system (usually software developers and DevOps/Cloud specialists) can be empowered to produce modern deployment strategies for clients whose legacy applications are still residing in VMs. Companies using the system can focus on clients' real desires and "pains". The main stakeholders for the system appeared to be companies that would like to migrate their applications from virtual machines to containers in an automated way. The Product owner - Nathan Keyaerts (DevOps Engineer \& Research, Training \& Education Lead at Sue), and Sue's employees will be considered as more specific stakeholders for the project. They can change the direction of the project and continuously provide both academic and technical feedback but also business-oriented advice. If the system was designed for the employees working at a specific company, this immediately forms a bias based on their demographics and financial status. A more generic approach was needed to exclude such bias and provide a system that can be used by more than one company. Different companies might like to take a different approach when solving the issue but making the system to be extensible in terms of migration approaches is a point in the right direction. Regarding data management, the system was not designed to use any sort of data collection, because it provides a way to automate the process of migrating an application from a VM to a container which means that every application is unique and contains real data in this sense. As personal data, GDPR, and privacy are important topics for a system that aims to migrate real applications, a closer look at who uses the system needs to be taken if the system is determined to be used in real life scenarios. The technology can register personal data if the application contains a self-contained database or other type of data sources. Most probably this data would be already encrypted. To avoid any GDPR-related issues, the system must be used only by the employees at the company integrating the PoC of this research paper into their infrastructure. If this system is determined useful, then it might be acquired by other companies that have similar issues as Sue. Additionally, it can be designed to serve a bigger amount of users and ideally save a lot of time for big and small companies, allowing the employees to focus on tasks requiring more in-depth work.
+
+\section{Results}
+An enterprise-level software system was designed and developed to migrate stateless applications from virtual machines to containers. Designing a whole system is a logical step when there is a lot of business logic and the main goal is to produce a solution that is extensible, flexible, user-friendly, and developer-friendly in terms of maintenance. The system was designed to perform black-box migration, meaning the user did not have to provide a lot of input data, and the migration process was highly automated. By focusing on several areas of the system's lifecycle, the system was constructed to help companies move their or the legacy applications of their clients from the old-fashioned virtual machines to the new container environments. The results are presented in detail in the sections: Black-box migration, Software architecture, Software Design patterns, User experience, and Infrastructure management.
+
+\subsection{Black-box migration}
+During the analysis phase, knowledge about the context of the project and its topics was gained and terminology and background information gained from the literature review were introduced as the base of the research. Through the Analysis phase of the research, virtual machines were determined to be an outdated approach in shipping applications as they cannot provide a small-in-size and easy-to-move interface so that developers can examine what kind of dependencies the application uses and then move the application to another environment in a quick and error-free way. In contrast, containers provide a lightweight, user-friendly approach to package an application and all its dependencies and then ship it to any environment while also being able to rapidly transfer it from one environment to another. As one of the major technologies for containerization, Docker was chosen as the technology to be used in the system, and this research will use dockerization as a synonym for containerization accomplished with the use of Docker. To migrate a stateless application from a VM to a container it was discovered that two main parts are required: analysis of what application needs to work in terms of files and other configurations, and containerization of the analysis output. To simplify the names of these parts, they were introduced in the system as \textbf{Analyze} and \textbf{Dockerize} sections. The "Analyze" section is responsible for analyzing the VM and performing application profiling of the application. It analyzes what the application requires to be executed successfully outside of the VM and generates a profile out of it in the form of an output directory. The "Dockerize" section assembles a Docker container that packages the application and all its dependencies based on the application profile generated by the "Analyze" section. The research discovered that the "Analyze" process can bring a good percentage of success rate if it considers the following segments to profile: application files, exposed ports, and system services. Application files are needed to run the application successfully outside of the VM. The ports the application uses need to be exposed in the container to make the application available. System services need to be started in the container as usually, the application is dependent on one or more services to provide the desired functionality.
+The system's architecture was created with all the needed components. To generate a solid architecture, ready to be implemented, it was decided to make several iterations on the design while also working on the technical challenge of building a PoC that performs a black-box migration for a stateless application from the perspective of an enterprise-level software system. The core of the research's technical challenge was building a PoC for a black-box migration. It was decided to migrate a Nginx web server from an Ubuntu 24.04 Virtual machine deployed on Google Cloud. The PoC was built to be extensible and support more than one migration approach - file system analysis and process analysis. To make the system flexible, the approaches were designed to be interchangeable while the option for mixed approach was added to allow users to choose if they want certain parts of the analysis process to be taken by the \textbf{file system analysis} approach and others by the \textbf{process analysis approach}. In the prototype, the file system analysis approach was only researched, designed, and developed in detail to minimize the scope and be able to produce results with one of the approaches. As a matter of choice, the file system analysis was chosen as the one to be worked on in the paper as the other approach was researched on its own by another research, part of the same research group working on the project. The prototype successfully performed the migration of a Nginx web server residing in an Ubuntu VM to a Docker container which was run and tested. The collection of application files was made using the copying tool "rsync" which copies files and directories from the target VM to an output directory \FigRef{fig:rsync-collect-app-files}. Several options were used to improve the quality of the result and to minimize its size. The option "-a" is particularly important as it enables archive mode, meaning it preserves symbolic links, file permissions, and other metadata. The "rsync" command uses SSH as a remote shell for secure file transfers. By using the "--exclude" option, directories or files could be removed from the output. Finally, the rsync command specifies the source and destination of the file system transfer, defining the target VM as a source and the output directory located in the back end as a destination.
+
+\begin{figure}[H]
+    \centering
+    \begin{minted}
+    [
+    xleftmargin=2em,
+    numbers=left,
+    frame=lines,
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\footnotesize,
+    bgcolor=LightGray,
+    breaklines
+    ]{bash}
+    rsync [-avz --progress --stats -e ssh -i [path/to/private/key] -o StrictHostKeyChecking=no --rsync-path sudo rsync --exclude=[pattern1] --exclude=[pattern2] ... [user]@[remote_host]:[source_path] [destination_path]]
+    \end{minted}
+    \caption{rsync: Collect application files}
+    \label{fig:rsync-collect-app-files}
+\end{figure}
+
+The exposed ports were collected using the "ss" Linux command, which stands for Socket Statistics. Socket Statistics is a tool for inspecting and displaying detailed information about network sockets in Linux environments. The "ss" command \FigRef{fig:ss-collect-exposed-ports} was used with several flags: "-t" to show TCP sockets, "-u" to show UDP sockets, "-l" to show only listening sockets, and "-n" to display only numerical addresses and ports instead of names to maintain simplicity and speed. Using \inlinecode{bash}{grep -vE '(:[excluded_port] )'} command, it becomes possible to exclude specific ports such as 22 (used for SSH) from the results. With the help of "awk", a tool used to manipulate data and generate reports, duplicate entries (e.g., 2 times port 80) were eliminated using the following custom filter \inlinecode{bash}{awk '!existing_values[\$4]++'}.
+
+\begin{code}
+    \begin{minted}
+    [
+    xleftmargin=2em,
+    numbers=left,
+    frame=lines,
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\footnotesize,
+    bgcolor=LightGray,
+    breaklines
+    ]{bash}
+    sudo ss -tuln | grep LISTEN | grep -vE '(:[excluded_port] )' | awk '!existing_values[$4]++' | awk -F ' ' '{print $1,$5}' | awk -F'[ :]' '{print $1,$3}'
+    \end{minted}
+    \caption{Collect Exposed ports with ss}
+    \label{fig:ss-collect-exposed-ports}
+\end{code}
+
+A custom command using various Linux tools \FigRef{fig:systemctl-collect-services} was created to collect the system services and to discover how each of them can be executed so that they can be replicated in the container environment. To collect the running services on the target VM, the "systemctl" command was utilized. To prepare the services for further processing, "awk" was used to format the services' names as null-terminated strings. Then "xargs", a tool for building and executing commands from the standard input, was added to the custom command to run a shell command for each service, capture the service's sub-state (e.g., running), and retrieve the command used to execute the service. As a result of the custom command for each service, the following data was printed: service name, sub-state, and the command to execute the service with.
+
+\begin{figure}[H]
+    \centering
+    \begin{minted}
+    [
+    xleftmargin=2em,
+    numbers=left,
+    frame=lines,
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\footnotesize,
+    bgcolor=LightGray,
+    breaklines
+    ]{bash}
+    systemctl list-units --no-pager -ql --type=service --state=running | awk '{printf "%s\0", $1}' | xargs -r0 -I{serviceName} bash -c 'name={serviceName}; sub=$(systemctl show -p SubState --value "$name"); cmd=$(systemctl cat "$name" 2>/dev/null | grep -i "ExecStart=" | awk -F= "{print \$2}" | sed "s/daemon on/daemon off/g" | sed "s/master_process on;//g"); echo "$name|$sub|$cmd"'
+    \end{minted}
+    \caption{Collect services with systemctl}
+    \label{fig:systemctl-collect-services}
+\end{figure}
+
+\subsection{Software architecture}
+From the start, the system was designed with two components: a command-line interface (CLI) which the user can interact with, and a core unit that handles the business logic. Through the CLI the user can analyze the application profile (application files, ports, services) and create a Dockerfile based on this profile, which will result in a Docker image and container that can be executed alone or as part of a Kubernetes cluster. The core unit acts as a back end which is why it is responsible for handling the user's requests.
+During the architecture design phase, several architectural styles were examined and their advantages and disadvantages were outlined so that in the end one architectural style or a mix can be selected and developed as part of the technical experiment of the research paper.
+
+\subsubsection{Monolithic and N-layer monolithic architecture}
+The two main components of the system: CLI and back-end could be placed in one monolithic system \FigRef{fig:monolithic-architecture} which means both the CLI and the back-end will be developed and deployed together. Using this approach the developer is writing the service/business logic directly in the CLI. The approach can be extended by using SOLID principles and SoC and detaching the service logic from the CLI by organizing the code base into layers, inspired by the N-layer architecture style \FigRef{fig:n-layer-monolithic-architecture}. The system can be packaged as an all-in-one CLI tool which can be either installed as an executable/binary or accessed through a web interface by the user. In the case of utilizing a monolithic architecture style, the main issue is the future view as the system cannot really be developed or deployed independently. Moreover, it is difficult to update and maintain it, it would be hard to extend it and there is the risk of making the CLI too heavy so that the users will not be happy and will stop downloading it and using it. The code for all the system components - analyze and dockerize could be placed in the same code base which is a convenient benefit because it makes building a PoC a quick and easy challenge. Additionally, the pure monolithic design of the system allows for organizing the back-end in the form of an automated script that can print logs and messages to the console and improve user interaction.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/monolithic-architecture.png}
+    \caption{Monolithic architecture}
+    \label{fig:monolithic-architecture}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/n-layer-architecture.png}
+    \caption{N-layer Monolithic architecture}
+    \label{fig:n-layer-monolithic-architecture}
+\end{figure}
+
+\subsubsection{Headless architecture}
+In contrast to the Monoliths, Headless architecture \FigRef{fig:headless-architecture} is a modern style to separate the front-end and the back-end of an application. The same principle can be employed to design the migration system as the CLI can act as the front end and the core unit can be the back end of the system. In this case, the two layers will be only able to communicate through an API. This adds more flexibility as the developer has the freedom to choose different technological stacks for each layer, and each layer can scale independently. By separating the layers, the CLI can become much more lightweight, and user-friendly as it will only provide an interface for the user to interact with the system, while the back end can be deployed on a server on the company's infrastructure or in a cloud environment. This will also improve the performance of the CLI and result in people having to install a CLI tool that is very tiny which increases the likelihood of people using the system more often.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/headless-architecture.png}
+    \caption{Headless architecture}
+    \label{fig:headless-architecture}
+\end{figure}
+
+\subsubsection{Headless Microservice architecture}
+In today's world microservice architecture style is recognized as an approach that organizes an application as a collection of two or more services that are independently deployable, loosely coupled, organized around business capabilities, and owned by a small team. This would mean separating firstly the front end (CLI) and the back end and then the back-end will be further separated into two or more services. For example, the back end can be organized into "Analyze" and "Dockerize" services each responsible for different parts of the migration. In the future, more services could be integrated such as Test service (responsible for testing if the migration was successful through various testing techniques) or Portability service (responsible for investigating the type of OS the application is residing in and adding support for not only Linux Ubuntu but also other flavors and even other OS like macOS or Windows). However, this requires each service to be highly detached from the system and it is only reasonable if the system has a lot of service logic or different components which is not the case for the current state of the system designed more as a PoC. Another reason for not choosing this style is that it requires more costs to deploy every service and manage it. It will also add complexity in terms of communication between the modules as the middle layer needs to be introduced to synchronize their work and apply messaging. In the context of the project, a combination of Headless and Microservice architecture styles could be a future suggestion. The CLI and the back-end unit would be detached from each other as in the headless architecture and the back-end unit could be organized into independent and self-deployable services so that more scalability can be achieved in terms of service logic and routing. All the services communicate with the CLI through a CLI while between each other they can use Messaging solutions like Message Broker (e.g., RabbitMQ, Kafka) to exchange data/information \FigRef{fig:headless-microservice-architecture}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/headless-microservice-architecture.png}
+    \caption{Headless microservice architecture with microservice-based API}
+    \label{fig:headless-microservice-architecture}
+\end{figure}
+
+\subsubsection{Headless Modular architecture}
+As an alternative to both Monolithic and Microservices architecture styles, Modular monolith is an approach that combines the advantages of monolith architecture - simplicity and robustness and the benefits of microservices - flexibility and scalability. This architecture style structures the application into independent modules or components that can be worked alone but deployed together. It promotes both modularity and cohesion of the system. Using this style in combination with the Headless architecture style, allows everything to be designed as a module - the CLI and all the back-end units (Analyze and Dockerize) \FigRef{fig:modular-headless-architecture-level-2}. All the modules can communicate through APIs with the CLI and each module can communicate with each other again through API or as in the Headless Microservice architecture communication between modules can be established through messaging. However, this might be seen as a more complex step in the separation of concerns process which is why a rather simpler design was created to make use of packages instead of modules for the back-end components - Analyze and Dockerize. This could simplify the communication and accomplish more beginner-friendly code organization \FigRef{fig:modular-headless-architecture-level-1}.
+And as Martin Fowler said: 
+
+\begin{quote}
+    "You shouldn't start a new project with microservices, even if you're sure your application will be big enough to make it worthwhile."
+\end{quote}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/modular-headless-architecture-level-1.png}
+    \caption{Modular Headless Architecture with Package-based API}
+    \label{fig:modular-headless-architecture-level-1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/modular-headless-architecture-level-2.png}
+    \caption{Modular Headless Architecture with Modoule-based API}
+    \label{fig:modular-headless-architecture-level-2}
+\end{figure}
+
+Although each of the suggested architecture styles has its advantages, none of them was selected but it was decided to use a combination of Headless, N-layer monolith, and Modular monolith architecture styles. Inspired by the headless architecture style, the system was divided into two detached parts \FigRef{fig:cli-api-conn}: CLI acting as the front end and API acting as the back end. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/cli-api-connection.png}
+    \caption{CLI to API connection}
+    \label{fig:cli-api-conn}
+\end{figure}
+
+Powered by the Modular architecture style, the two detached parts \FigRef{fig:cli-api-conn}: CLI and API were designed and developed as Golang modules. The API was constructed as a back end that uses layers similarly as in the N-layer architecture \FigRef{fig:back-end-api-layers}: models to store the Data Objects and routes to store the controllers. The service logic was developed in separate files and using functions that can be called from the router interface function. As the PoC was developed in Golang, Golang packages were utilized to separate each layer but also the different routes in the routes layer. The two main components of the migration process, "Analyze" and "Dockerize", were introduced as packages, located in the routes layer.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/back-end-api-layers.png}
+    \caption{Back-end API layers}
+    \label{fig:back-end-api-layers}
+\end{figure}
+
+\subsubsection{Tech stack}
+The system was designed to have two main components, CLI and API, which are detached from each other and can be developed and deployed independently, allowing different technologies to be used for each of them. API technologies such as REST, GraphQL, and gRPC further complement modern architectural trends by facilitating efficient communication between distributed systems \cite{Ali-2024}. While REST remains the most mature and widely adopted API approach, GraphQL and gRPC are increasingly favored for more dynamic, high-performance systems, particularly in real-time applications \cite{Ali-2024}. This shift towards using the right API for the right use case highlights the importance of aligning technical architecture with both current needs and future scalability requirements \cite{Nivedhaa-2024}, \cite{Ali-2024}. Regarding APIs, REST remains the most mature and widely adopted technology, which is why it was chosen for the project and the development of a PoC. There is a long list of modern technologies that can serve the needs to build a professional-made API. The goal of the project is to automate the migration of an application from a VM to a container which requires a script-oriented approach to analyze the application profile and run a container based on it. In this research paper two modern languages and one automation tool were considered: Python, Golang, and Ansible. 
+As stated in \cite{NanzEtAl-2015} Python as a scripting language enables writing more concise code than procedural languages like Golang and also produces smaller executables, however, Golang is more economical in terms of RAM, less failure-prone and much faster when there are computing-intensive workloads. This can be efficient if the system is continuously evolving in functionality. Ansible is a well-known agentless tool for automating tasks related to configuration management \cite{Elradi-2023}, it requires only the installation of Python and pip/pipx \cite{Sesto-2022} and can connect to the target machine to perform automations only using SSH \cite{Elradi-2023}. Compared to other tools like Puppet, Salt Stack, and Chef, it is much easier to learn and set up Ansible, providing easy-to-read YAML-based syntax \cite{ChoiEtAl-2023} that can improve the developer’s experience. As Ansible is designed to be idempotent, running playbooks multiple times will not change the system's state \cite{ChoiEtAl-2023}, while Bash/Python/Golang scripts will try to install the same package twice for example. Ansible can be used as a collector of application information as it is agentless, and it does not require installing an agent on the target machine to run configuration scripts \cite{ChoiEtAl-2023}. Ansible coming with built-in modules for the most popular system description units like users, groups, files, and packages \cite{Kumar-2023}, can be effectively used to build a cross-platform compatible collector of application data which can be then analyzed by the core unit of the system and a Docker container be produced as a result. Although Ansible is very flexible for automation, it is not a programming language, nor suitable for building an API. If the business logic is not built in the form of an API, then the system will be packed in a monolithic-alike structure which will produce a heavy binary at the end and will not allow building a more complex software system in the future. On the other hand, Python and Golang are suitable choice even for enterprise-level software and are more than suitable for building APIs which are flexible and scalable. Golang was chosen because it is built with the goal of being modular as everything in Golang is a module or package. It is quite lightweight and fast and provides a C++-like interface which is appropriate for migration systems where a lot of interaction with the OS interface is needed. To develop the back-end as an API, the popular framework Gin was used to ease the creation of proper routing. To build the CLI the well-known Golang CLI library Cobra was used to maintain a professional-like CLI tool. The prototype was written in Golang using Gin for building an API interface for the two main units - Analyse and Dockerize. The two components - analyze and dockerize were built as Golang packages to easily communicate with each other. 
+
+\subsection{Software design patterns}
+By integrating design patterns in the code base, the solution became more extensible and flexible. The system is using two main units to deliver a successful result - Analyze and Dockerize. There are two methods: file system and process analysis used to create the profile of an application residing in a VM. The Abstract Factory was implemented with the use of an interface that combines all the methods to build the application profile - application files, ports, services and then builds a function that acts as a factory entry point with input of the type of the analysis approach and output of the concrete analysis method implementation \FigRef{fig:abstract-factory-design-pattern}. 
+
+\begin{figure}[H]
+    \centering
+    \begin{minted}
+    [
+    xleftmargin=2em,
+    numbers=left,
+    frame=lines,
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\footnotesize,
+    bgcolor=LightGray,
+    breaklines
+    ]{golang}
+    // Abstract factory design pattern used
+    type IAnalyzerFactory interface {
+    	collectApplicationFiles(...)
+    	collectExposedPorts(...)
+    	collectServices(...)
+    }
+    \end{minted}
+    \caption{Asbtract Factory Design pattern}
+    \label{fig:abstract-factory-design-pattern}
+\end{figure}
+
+The idea of the factory is to create all distinct products by abstracting the actual product creation into concrete factory classes \cite{GammaEtAl-1993} or structures in the context of Golang. The client code interacts with the factory entry point \FigRef{fig:abstract-factory-entry-point} and can choose one variant of the factory product which means all its sub-products/methods will be compatible \cite{GammaEtAl-1993}. In the context of the project, the user can interact with the Factory entry point to choose between file system and process analysis and then all the methods of the chosen Analyzer will be utilized correctly. For the project, the three methods do not return a product as an output but a string as they return the path to the created file in the case of "collectExposedPorts" and "collectServices" or file system tree in the case of "collectApplicationFiles".
+
+\begin{figure}[H]
+    \centering
+    \begin{minted}
+    [
+    xleftmargin=2em,
+    numbers=left,
+    frame=lines,
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\footnotesize,
+    bgcolor=LightGray,
+    breaklines
+    ]{bash}
+    // Abstract Factory Implementation
+    func GetAnalyzerFactory(analyzerType string) (IAnalyzerFactory, error) {
+    	switch analyzerType {
+    	case "fs":
+    		return &FsAnalyzerImpl{}, nil
+    	case "process":
+    		return &ProcessAnalyzerImpl{}, nil
+    	case "mixed":
+    		return &MixedAnalyzerImpl{}, nil
+    	...
+    }
+    \end{minted}
+    \caption{Asbtract Factory Design pattern}
+    \label{fig:abstract-factory-entry-point}
+\end{figure}
+
+Serving as an extra approach, the mixed analyzer was added to the factory allowing more flexible analysis of the application profile by allowing for each method the user to be able to choose a different strategy - file system or process analyzer. To implement this flexibility of choosing a strategy of analyzing each part of the process - collection of application files, collection of services, and collection of exposed ports, the Strategy design pattern was used \FigRef{fig:strategy-design-pattern-struct-base}. 
+
+\begin{code}
+    \begin{minted}
+    [
+    xleftmargin=2em,
+    numbers=left,
+    frame=lines,
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\footnotesize,
+    bgcolor=LightGray,
+    breaklines
+    ]{golang}
+    type MixedAnalyzerImpl struct {
+	applicationFileStrategy IAnalyzerFactory
+	exposedPortsStrategy    IAnalyzerFactory
+	servicesStrategy        IAnalyzerFactory
+    }
+    // Methods to allow dynamically changing strategies
+    func (m *MixedAnalyzerImpl) SetApplicationFileStrategy(strategy IAnalyzerFactory) {
+    	m.applicationFileStrategy = strategy
+    }
+    ...
+    \end{minted}
+    \caption{Strategy Design pattern struct base}
+    \label{fig:strategy-design-pattern-struct-base}
+\end{code}
+
+The concept behind the Strategy pattern is defining a family of algorithms that are interchangeable and be used as alternatives to each other \cite{GammaEtAl-1993}. In the context of the project, each part of the process can be processed by a different kind of strategy, at the moment the options are two - file system and process analysis. Each strategy can provide its implementation through the template methods \FigRef{fig:strategy-design-pattern-method}. For example, the user can choose to collect the application files using the file system analysis, while for collection of exposed ports the process analysis strategy could be utilized. This way the user has more freedom to experiment which approach works best for their situation and therefore create their own combinations which might turn out to be more successful then the default ones.
+
+\begin{figure}[H]
+    \centering
+    \begin{minted}
+    [
+    xleftmargin=2em,
+    numbers=left,
+    frame=lines,
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\footnotesize,
+    bgcolor=LightGray,
+    breaklines
+    ]{golang}
+    func (m *MixedAnalyzerImpl) collectApplicationFiles(user string, host string, sourceDir string, destinationDir string, privateKeyPath string) (string, error) {
+	if m.applicationFileStrategy == nil {
+		return "", fmt.Errorf("...")
+	}
+		return m.
+			applicationFileStrategy.
+			collectApplicationFiles(
+			     user, 
+			     host, 
+			     sourceDir, 
+			     destinationDir, 
+			     privateKeyPath,
+		      )
+    }
+    \end{minted}
+    \caption{Strategy Design pattern in-method use}
+    \label{fig:strategy-design-pattern-method}
+\end{figure}
+
+\subsection{User experience}
+CLIs are used primarily by humans and usability should be one of the focus points of its design \cite{Newton-2016}, but they are not designed for humans first, nor do they provide a good level of interaction design \cite{Tiedemann-2023}. The conventions of the UNIX environment such as standard in/out/err, signals, and exit codes ensure different programs work together nicely \cite{Tiedemann-2023}. Plain, line-based text can be easily piped between commands, while JSON allows integrations with the web \cite{Tiedemann-2023}. Building the CLI to follow already existing industry patterns, makes the CLI more intuitive \cite{Tiedemann-2023}, \cite{Newton-2016}. Options should be human-readable and supplemented by short aliases like -v for –verbose \cite{Newton-2016} but if the user is still unsure how to proceed, an intuitive help command must be provided \cite{Salesforce-2024}. Versioning of the CLI is crucial so that users can easily check if a certain version has a bug report \cite{Salesforce-2024}. A long period without output is not user-friendly \cite{Salesforce-2024} and the output has to be designed to be human-readable, offering JSON when needed \cite{PrasadEtAl-2024}. As stated in \cite{Tiedemann-2023}, people should be able to search for CLI documentation through a web interface. To design the CLI to be lightweight, \cite{Salesforce-2024} advises moving as much business logic as possible out of the actual CLI script and utilizing modular code design. A core unit managing the business logic needs to be designed to build a lightweight and user-friendly CLI. The core unit needs to collect the application’s data, analyze it, and create a Dockerfile based on it \FigRef{fig:cli-api-communication}. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/cli-api-communication.png}
+    \caption{CLI to API communication}
+    \label{fig:cli-api-communication}
+\end{figure}
+
+The collection of the application’s data is particularly important to provide a good user experience. Thus, the usage of agentless tools/scripts to collect application data will be a crucial step towards improved user experience and a more lightweight software architecture \FigRef{fig:agentless-collector}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/agentless-collector.png}
+    \caption{Agentless collector}
+    \label{fig:agentless-collector}
+\end{figure}
+
+As stated in \cite{Elradi-2023} automation is the way to run tasks without human interventions and the CLI aims to achieve the collection of the application’s data without relying on manual actions from the user such as installing a piece of software on the target VM. To maintain a lightweight and quickly-to-install interface, the CLI was designed as a binary installable that does not contain any service logic and makes requests to the back-end through an API interface to gather the results of the analysis and dockerization \FigRef{fig:installable-lightweight-cli}. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/installable-lightweight-cli.png}
+    \caption{Installable Lightweight CLI}
+    \label{fig:installable-lightweight-cli}
+\end{figure}
+
+The CLI was designed with two main commands - analyze and dockerize \FigRef{fig:cli-analyze-command}, \FigRef{fig:cli-dockerize-command}. The first command asks for the following input from the user: type (analysis approach type), user (username of the user to access the VM), host (IP of the VM), privateKeyPath (path to the SSH key to access the VM). The dockerize command asks for the following input: dockerImageName (name of the docker image created from the Dockerfile), dockerContainerName (name of the container created from the docker image). 
+
+\begin{figure}[H]
+    \centering
+    \begin{minted}
+    [
+    xleftmargin=2em,
+    numbers=left,
+    frame=lines,
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\footnotesize,
+    bgcolor=LightGray,
+    breaklines
+    ]{bash}
+    vm2cont analyze \
+      --type=fs \
+      --user=<username> \
+      --host=<IP address> \
+      --privateKeyPath=<path to private key>
+    \end{minted}
+    \caption{CLI Analyze command}
+    \label{fig:cli-analyze-command}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minted}
+    [
+    xleftmargin=2em,
+    numbers=left,
+    frame=lines,
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\footnotesize,
+    bgcolor=LightGray,
+    breaklines
+    ]{bash}
+    vm2cont dockerize \     
+        --dockerImageName=<docker image name> \
+        --dockerContainerName=<docker container name>
+    \end{minted}
+    \caption{CLI Dockerize command}
+    \label{fig:cli-dockerize-command}
+\end{figure}
+
+Also, an "output" flag \FigRef{fig:cli-analyze-command-output}  was added to provide the option for the user to choose between human-readable and machine-readable output. Human-readable output is considered normal text and machine-readable format is considered JSON in the current state of the PoC.
+
+\begin{figure}[H]
+    \centering
+    \begin{minted}
+    [
+    xleftmargin=2em,
+    numbers=left,
+    frame=lines,
+    framesep=2mm,
+    baselinestretch=1.2,
+    fontsize=\footnotesize,
+    bgcolor=LightGray,
+    breaklines
+    ]{bash}
+    vm2cont analyze \
+      --type=fs \
+      --user=<username> \
+      --host=<IP address> \
+      --privateKeyPath=<path to private key> \
+      --output=<json|text>
+    \end{minted}
+    \caption{CLI Analyze command with specified output}
+    \label{fig:cli-analyze-command-output}
+\end{figure}
+
+\subsection{Infrastructure management}
+As the system was designed to have several components, infrastructure management is an important aspect of the proposed design and prototype. Companies like Sue will most probably need to migrate applications residing in a private network, which makes it mandatory to have access to this private network to perform any kind of migration.
+SSH being a mechanism for secure connections between Linux hosts \cite{Both-2023}, can be used to access a VM residing in a private network from the back-end API. The back-end API was designed to access the target VM for analysis using only SSH. A system prerequisite is adding a user to the target VM which can access it remotely through SSH connection. Once a user is available, the system will only request necessary data: username, path to the private SSH key, and host IP of the target VM. If both the VM and the Back-end API are located in the same private network they can communicate with each other through their private IP addresses. In case the API and the target VM are not located in the same private network, then the VM should expose its public IP so that the system can interact with it to perform analysis. Although this might look straightforward, it opens security issues, because the VM is then exposed to the world through its public IP. To avoid exposing the target VM through its public IP, a VPN can be connection can be used. A VPN creates an encrypted tunnel between the system and the private network where the target VM is located. The VPN serves as a bridge between the system and the target VM allowing the VM to securely connects to the VM without exposing it to the internet. The VPN connection is visualized in the diagram \FigRef{fig:api-vm-connection}. In the private network where all the company's VMs (possible targets for the system) are located, a VPN server should be deployed. Well-known options for a VPN server are WireGuard, OpenVPN in case self-hosting is preferred but also managed VPN solutions offered by the popular cloud providers can be used. Once the VPN server is up and running in the private network, the system can install and configure a VPN client with credentials provided by the VPN server and then request connection to the target VM through the VPN tunnel. Once the connection is established, the system can freely communicate with the VM in a secure manner. While the system or more specifically the "analyze package" needs to communicate directly with the VM, the CLI is not going to establish any connections with the target VM, nor perform any commands directly on it. The CLI will only communicate with the Back-end API and the send API requests to it based on the user inputs. The CLI will act as a "Facade" for the user to now know where and how the back-end is deployed and functions. The concept behind the detached CLI is organized around the idea of providing a lightweight interface to the user and hides the complexity while focus on the user experience and on fulfilling the user requests and needs. The paper presents the in its infrastructure design, to make the CLI available for install only through a web interface which can be accessed using proper authentication credentials received on request from the company's management where the system is integrated.
+
+\subsection{Results summary}
+The paper modeled the software architecture and infrastructure design of a system to migrate stateless applications from virtual machines to containers. Through an applied technical experiment, it was concluded that the PoC for the system implemented based on the software and infrastructure design of the system produced a successful migration of a Nginx web server from an Ubuntu VM to a Docker container. Due to the future-oriented design of the system, more complex applications can be migrated if the business logic is further enhanced. The full overview of the software architecture design of the system is presented in Appendix \ref{appendix:software-arch-overview-diagram}. In the paper short code snippets were used to describe different parts of the implementation which supports the findings and results gathered through applied experiments. The full code base of the PoC, demonstrating a software system that can transfer a stateless application such as a web server from an Ubuntu virtual machine to a Docker container, can be found in the GitHub repository of the project (Appendix \ref{appendix:PoC}).
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/api-vm-connection.png}
+    \caption{API to VM Connection}
+    \label{fig:api-vm-connection}
+\end{figure}
+
+\section{Discussion}
+Several months of analysis on the topic of VM-to-container migration showed it is possible to perform a black-box migration of a stateless application from a Linux-flavored VM like Ubuntu to a Docker container in a highly automated way. Moreover, designing an enterprise-level system instead of just a script to conduct the migration of an application from a VM to a container, appeared to be an appropriate approach if the solution aims to be lightweight, user-friendly, extensible, and flexible. The paper designed the system to ask for such minimal input from the user so that it can be considered a black-box migration of what the system performs to transfer one application from a VM to a container. In terms of software architecture, the system was designed with two main components: CLI and Back-end API where the CLI acts as a lightweight front end the user can interact with quickly and easily, while the back end handles the business logic. The back end was constructed to perform analysis of an application residing in a VM so that it can gather the application files, exposed ports, and services, and then build a Dockerfile based on the application profile. The back end is responsible for generating the Dockerfile, building a Docker image and a Docker container to fully test if the migration is successful. By combining several architecture styles such as Modular Monolith and Headless architecture, the system was organized into two headless modules which allow independent development, deployment, and infrastructure management. The back end was structured into layers and packages, inspired by the N-layer Monolith architecture style and package-based approach of building Golang applications, which results in good readability, separation of concerns, and effortless communication, while also enabling future scalability of the system and its business logic. In terms of application profiling, the PoC of the system focused on the file system analysis, creating a complete example of migrating a Nginx web server from an Ubuntu VM to a Docker container. The other discovered approach for application profiling, process analysis, was not discovered in detail but the system was designed to support it in the future. The system was constructed to be highly extensible and to support more than one analysis approach in the future through the use of software design patterns integrated into the code base. In terms of flexibility, the system prototyped an innovative mixed approach to perform analysis by combining the file system and process analysis and allowing the user to choose which approach to use for each part of the process: collection of application files, collection of exposed ports, and collection of services. The CLI was designed based on the modern design best practices in the area of CLI development, following the guidelines of the popular CLI tools, but also keeping the interface intuitive allowing just two options - to analyze the application profile and to dockerize, meaning creating a container for the application based on the application profile. The system was designed to be interpreted by both human users and machine-powered users (i.e., other programs) by integrating both machine- and human-readable formats for the output that the CLI provides to the user. This paper also analyzed how the system could be managed in terms of infrastructure in a company environment, and found that the best option is to deploy the back end on a cloud VM or local server while the CLI can be downloaded as a binary from a web interface using authentication credentials, provided by the company's management. To support secure communication without the need to deploy the back end in the same private network as the target VM, the paper suggested deploying a VPN server in the private network where the target VM resides and allowing the back end to communicate with the target VM through a VPN tunnel. While various aspects of designing a complete software system for making a VM-to-container migration were analyzed in the paper, still, the PoC does not dive into detail on how to build a fully functional, secure, and ready-to-be-used system. In terms of functionality, more research and experiments are needed to improve the business logic and be able to perform migrations for more complex applications than web servers. Security was not a focus of this work, although it was partially covered in the Infrastructure management section, which is why this opens a space for future research-oriented experiments on how the system can be protected from malware access and theft of sensitive data. This paper focuses more on designing the full overview of a system that can do an automated migration and does not examine the performance of both analysis approaches, which can be a topic of future research. While these limitations do not affect the current results of designing a software system to migrate a stateless application from a VM to a container, future work is needed to continue what was discovered and further enhance the business logic to perform more complex migrations.
+
+\section{Conclusion}
+The paper designed and prototyped an enterprise-level software system that performs automated VM-to-container migrations to help companies move their or their clients' legacy applications from old-fashioned virtual machine environments to more lightweight, portable, and operationally efficient container environments. A migration process consisting of two parts Analyze and Dockerize was modeled where the first one is responsible for analyzing the target VM and creating an application profile while the second one has to generate a Dockerfile out of the profile, build a Docker image and run a Docker container to verify a successful migration was performed. Using file system analysis, the PoC developed during the study, performed a successful migration of a Nginx web server from Ubuntu VM to a Docker container. Additionally, the system was designed to support also the other type of analysis approach - process analysis. A topic of future research could be migration of more complex stateless and stateful applications as the current solution is limited to make migrations of web servers. Another limitation of the current solution is the security of the system which is not covered as a separate sub-topic, although it was considered while modeling the infrastructure management plan for the system. These limitations could be a useful next step but do not affect the current results which showed designing a system to perform migrations requires many aspects of the problem to be worked but it brings many benefits such as more extensible, flexible, and easier-to-maintain business logic that allows more and combination of different migration approaches to be used and better user experience.
+
+\printbibliography
+\end{multicols}
+
+\newpage
+\begin{appendices}
+
+\section{Software architecture overview diagram}
+\label{appendix:software-arch-overview-diagram}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{images/software-architecture-overview.png}
+    \caption{Software architecture overview diagram}
+\end{figure}
+
+\section{Software system PoC}
+\label{appendix:PoC}
+The code for PoC for a Software system to migrate stateless applications from a VM to a container can be found in: \href{https://github.com/toni123321/vm-to-container-migrator}{https://github.com/toni123321/vm-to-container-migrator}
+\end{appendices}
+\end{document}
+
